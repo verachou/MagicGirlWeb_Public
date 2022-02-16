@@ -1,0 +1,83 @@
+@{
+  ViewData["Title"] = "[低調] 線上小說轉檔";
+}
+
+@model MagicGirlWeb.Models.SmartEditModel
+
+<div class="content-wrap">
+    <div class="main">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-8 p-r-0 title-margin-right">
+            <div class="page-header">
+              <div class="page-title">
+                <h1>智能格式調整</h1>
+                <span id="m1-1">髒髒的TXT轉成kindle可正常閱讀版本</span>
+              </div>
+            </div>
+          </div>
+          <!-- /# column -->          
+        </div>
+        <!-- /# row -->
+        <section id="main-content">
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="card">
+                <div class="card-title">
+                  <!-- <h4>Basic Elements</h4>   -->
+                </div>
+                <div class="card-body">
+                  <div class="basic-elements">
+                    <form action="post" id="smartedit">
+                      <div class="row">
+                        <div class="col-lg-6">
+                          <div class="form-group">
+                            <!-- <label for="" class="btn btn-default m-b-10 m-l-5">
+                              <input type="file" accept=".txt" class="" hidden></i> 檔案上傳
+                            </label> -->  
+                            <input type="file" accept=".txt" class="" hidden></i> 檔案上傳                                                    
+                          </div>
+                          <div class="form-group">
+                            <label>原文格式</label>
+                            <div class="check-container">
+                              <input type="radio" name="encoding" checked="checked" value="gb2312" class="">
+                              <label>簡體中文GB2312 </label>
+                            </div>
+                            <div class="check-container">
+                            <input type="radio" name="encoding" value="big5" class="">
+                              <label>繁體中文BIG5</label>
+                            </div>
+                            <div class="check-container">
+                              <input type="radio" name="encoding" value="utf8" class="">
+                              <label>UTF-8</label>
+                            </div>                          
+                          </div>
+                          <div class="form-group">
+                            <label>其他格式需求</label>
+                            <div class="check-container">
+                              <input type="checkbox" name="to-tW" id="chkToTW">
+                              <label for="to-tW">簡轉繁</label>
+                            </div>
+                            <div class="check-container">
+                              <input type="checkbox" name="double-eol" id="chkDoubleEOL">
+                              <label for="double-eol">換行修正(for Kindle)</label>
+                            </div>
+                          </div>  
+                          <button class="btn btn-default m-b-10 m-l-5">上傳檔案</button>
+                        </div>                        
+                        <!-- column -->
+                      </div>
+                      <!-- row -->
+                    </form>                    
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- /# column -->
+          </div>
+          <!-- /# row -->
+        </section>
+      </div>
+    </div>
+  </div>
+  <!-- contain-wrap -->
