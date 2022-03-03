@@ -31,8 +31,18 @@ namespace MagicGirlWeb.Models
     [Column("last_page_to")]
     public int LastPageTo { get; set; } = -1;
 
+    [StringLength(500, ErrorMessage = "Cannot be longer than 500 characters.")]
+    [Column("file_path")] 
+    public string FilePath { get; set; }
 
-    
+    // 下載來源識別碼
+    //hash(網站代碼 + 書籍網址識別碼), 用來判斷此網站來源是否已下載過
+    [StringLength(32, ErrorMessage = "Cannot be longer than 32 characters.")]
+    [Column("source_id")]
+    public string SourceId { get; set; }
+
+
+
 
 
 
