@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace MagicGirlWeb.Models
 {
   [Table("ACCOUNT_EMAIL")]
-  public class AccountEmailModel : ObjectDetailModel
+  public class AccountEmail : ObjectDetailModel
   {
-    [ForeignKey("AccountModel")]
-    [Column("account_id")]
-    public int AccountId { get; set; }
+    // [ForeignKey("AccountModel")]
+    // [Column("account_id")]
+    // public int AccountId { get; set; }
 
     [DataType(DataType.EmailAddress)]
     [StringLength(100, ErrorMessage = "Cannot be longer than 100 characters.")]
@@ -19,6 +19,8 @@ namespace MagicGirlWeb.Models
     [Column("description")]
     public string Description { get; set; }
 
+    // Model Relation
+    public virtual Account Account { get; set; }
 
   }
 }

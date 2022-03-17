@@ -4,16 +4,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace MagicGirlWeb.Models
 {
   [Table("BOOK_DOWNLOAD")]
-  public class BookDownloadModel : ObjectDetailModel
+  public class BookDownload : ObjectDetailModel
   {
-    [ForeignKey("BookWebsiteModel")]
-    [Column("book_website_id")]
-    public int BookWebsiteId { get; set; }
+    // [ForeignKey("BookWebsiteModel")]
+    // [Column("book_website_id")]
+    // public int BookWebsiteId { get; set; }
 
-    // 下載者
-    [ForeignKey("AccountModel")]
-    [Column("account_id")]
-    public int AccountId { get; set; }
+    // // 下載者
+    // [ForeignKey("AccountModel")]
+    // [Column("account_id")]
+    // public int AccountId { get; set; }
 
     // 寄送信箱
     // 因提供自行設定寄送信箱的功能，故此欄位資料不一定存在於AccountEmail
@@ -34,6 +34,19 @@ namespace MagicGirlWeb.Models
     [Column("download_status")]
     public int DownloadStatus { get; set; } = Constant.DOWNLOAD_STATUS_FAIL;
 
+    // Model Relation
+    public virtual BookWebsite BookWebsite { get; set; }
+    // 下載者
+    public virtual Account Account { get; set; }
 
+    public BookDownload (string email, BookWebsite bookWebsite, Account account, int DownloadStatus)
+    {
+      Email = email;
+      PageFrom = bookWebsite.LastPageFrom;
+      PageTo = bookWebsite.LastPageTo;
+      DownloadStatus = DownloadStatus;
+      Account = account;
+      BookWebsite = bookWebsite;
+    }
   }
 }

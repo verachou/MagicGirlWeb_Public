@@ -7,6 +7,7 @@ namespace MagicGirlWeb.Models
   public abstract class ObjectRelationModel
   {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     [Column("id")]
     public int Id { get; set; }
 

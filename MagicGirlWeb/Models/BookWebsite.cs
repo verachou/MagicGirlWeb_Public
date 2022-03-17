@@ -1,14 +1,15 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MagicGirlWeb.Models
 {
   [Table("BOOK_WEBSITE")]
-  public class BookWebsiteModel : ObjectDetailModel
+  public class BookWebsite : ObjectDetailModel
   {
-    [ForeignKey("BookModel")]
-    [Column("book_id")]
-    public int BookId { get; set; }
+    // [ForeignKey("BookModel")]
+    // [Column("book_id")]
+    // public int BookId { get; set; }
 
     [StringLength(500, ErrorMessage = "Cannot be longer than 500 characters.")]
     [DataType(DataType.Url)]
@@ -41,11 +42,23 @@ namespace MagicGirlWeb.Models
     [Column("source_id")]
     public string SourceId { get; set; }
 
+    // Model Relation
+    public virtual Book Book { get; set; }
 
+    public virtual ICollection<BookDownload> BookDownloads { get; set; }
 
-
-
-
+    public BookWebsite(
+      string url, 
+      string sourceId, 
+      int lastPageFrom, 
+      int lastPageTo
+      )
+    {
+      Url = url;
+      SourceId = sourceId;
+      LastPageFrom = lastPageFrom;
+      LastPageTo = lastPageTo;
+    }
 
   }
 }
