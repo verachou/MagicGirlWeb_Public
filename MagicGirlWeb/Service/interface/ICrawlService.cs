@@ -8,10 +8,11 @@ namespace MagicGirlWeb.Service
   {
     Book Analysis(string url);
 
-    FileStream Download(
+    bool Download(
         string url,
         int lastPageFrom,
-        int lastPageTo
+        int lastPageTo,
+        FileStream fileStream
     );
 
     void DeleteLocalFile(string url);

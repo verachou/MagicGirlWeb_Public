@@ -68,7 +68,7 @@ namespace MagicGirlWeb.Test.Service
       Book actualBook = _crawlService.Analysis(url);
       IEnumerator<BookWebsite> enumBookWebsite = actualBook.BookWebsites.GetEnumerator();
       enumBookWebsite.MoveNext();                                                           // 取得第一筆資料
-      BookWebsite actualBookWebsite = enumBookWebsite.Current;   
+      BookWebsite actualBookWebsite = enumBookWebsite.Current;
 
       // Assert
       Assert.AreEqual(expectTitle, actualBook.Name);
@@ -79,7 +79,7 @@ namespace MagicGirlWeb.Test.Service
 
     [Test]
     [TestCase("https://czbooks.net/n/cf2efm", 5, "　　《（ABO）陽澄湖帝王》第0章　　書名：（ABO）陽澄湖帝王　　作者：superpanda")]
-    public void Download_InputUrl_ReturnFileStream(
+    public void Download_InputUrl_FileIsDownload(
         string inputUrl,
         int testRowCount,
         string expectContent
@@ -87,17 +87,29 @@ namespace MagicGirlWeb.Test.Service
     {
       // Arrange      
       string url = inputUrl;
-
-      // Act
-      FileStream actualFile = _crawlService.Download(url,1,1);
-      StreamReader reader = new StreamReader(actualFile);
+      bool ActualReturn = false;
       string actualContent = "";
-      for (int i = 0; i < testRowCount; i++)
+      string downloadFileName = _filePath + @"\" + "CrawlService下載測試.txt";
+      
+      // Act
+      // CrawlService.Download()正常情況下會將fileStream dispose, 安全起見這邊用using確保檔案資源被正常釋放
+      using (FileStream fileStream = new FileStream(downloadFileName, FileMode.OpenOrCreate))
       {
-        actualContent += reader.ReadLine();
+        ActualReturn = _crawlService.Download(url, 1, 1, fileStream);
+      }
+
+      using (FileStream fileStream = new FileStream(downloadFileName, FileMode.Open))
+      {
+        StreamReader reader = new StreamReader(fileStream);
+
+        for (int i = 0; i < testRowCount; i++)
+        {
+          actualContent += reader.ReadLine();
+        }
       }
 
       // Assert
+      Assert.True(ActualReturn);
       Assert.AreEqual(expectContent, actualContent);
     }
 

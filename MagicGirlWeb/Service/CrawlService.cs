@@ -60,9 +60,8 @@ namespace MagicGirlWeb.Service
       return book;
     }
 
-    public FileStream Download(string url, int lastPageFrom, int lastPageTo)
+    public bool Download(string url, int lastPageFrom, int lastPageTo, FileStream fileStream)
     {
-      FileStream file = null;
       TaskInfo taskInfo = _taskList.Find(x => x.Url == url);
 
       // 若該url找不到對應的taskInfo，則自動將其分析後取得該taskInfo
@@ -76,19 +75,26 @@ namespace MagicGirlWeb.Service
       taskInfo.EndSection = lastPageTo;
       _coreManager.TaskManager.DownloadTask(taskInfo);
 
+      if (taskInfo.Status != DownloadStatus.DownloadComplete)
+      {
+        return false;
+      }
+
       try
       {
-        if (taskInfo.Status == DownloadStatus.DownloadComplete)
+        using (FileStream downloadfile = new FileStream(taskInfo.SaveFullPath, FileMode.Open))
         {
-          file = new FileStream(taskInfo.SaveFullPath, FileMode.Open);
+          downloadfile.CopyTo(fileStream);
+          fileStream.Dispose();
         }
       }
       catch (Exception ex)
       {
         _logger.LogError(ex.ToString());
+        return false;
       }
 
-      return file;
+      return true;
     }
 
     public void DeleteLocalFile(string url)
