@@ -28,7 +28,7 @@ namespace MagicGirlWeb.Test.Service
       @"{""Authentication"": 
           {
             ""Google"": {
-              ""DriveApiKey"": ""F:/vscode/github/CSharpExercise/testSolution/testConsole/credentials.json"",
+              ""DriveApiKey"": ""~/keystore/credentials.json"",
               ""ApplicationName"": ""MagicGirlWeb FileService"",
               ""DriveFolderId"": ""14M4JwGgWRe0dWBePc0XXtgVIGh_7PQw9""
             }
