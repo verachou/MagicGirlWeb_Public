@@ -6,16 +6,17 @@ namespace MagicGirlWeb.Service
   public interface IFileService
   {
     bool Download(
-        string fileId,
-        FileStream fileStream
+      string fileId,
+      string filePath
     );
 
     string Upload(
-        string fileName,
-        string fileFolder,
-        string mimeType,
-        string description
+      string filePath,
+      string mimeType,
+      string description
     );
+
+    void ClearLocalFolder(string folderPath);
 
   }
 }

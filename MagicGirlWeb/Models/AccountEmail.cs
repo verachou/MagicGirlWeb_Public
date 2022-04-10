@@ -1,14 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 
 namespace MagicGirlWeb.Models
 {
-  [Table("ACCOUNT_EMAIL")]
+  // [Table("ACCOUNT_EMAIL")]
   public class AccountEmail : ObjectDetailModel
   {
-    // [ForeignKey("AccountModel")]
-    // [Column("account_id")]
-    // public int AccountId { get; set; }
+    [ForeignKey("IdentityUser")]
+    [Column("account_id")]
+    public string AccountId { get; set; }
 
     [DataType(DataType.EmailAddress)]
     [StringLength(100, ErrorMessage = "Cannot be longer than 100 characters.")]
@@ -19,8 +20,9 @@ namespace MagicGirlWeb.Models
     [Column("description")]
     public string Description { get; set; }
 
+
     // Model Relation
-    public virtual Account Account { get; set; }
+    public virtual IdentityUser Account { get; set; }
 
   }
 }

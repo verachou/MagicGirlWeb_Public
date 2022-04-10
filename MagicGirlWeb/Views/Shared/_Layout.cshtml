@@ -14,6 +14,8 @@
     <link href="~/theme_focus/css/lib/bootstrap.min.css" rel="stylesheet">
     <link href="~/theme_focus/css/lib/helper.css" rel="stylesheet">
     <link href="~/theme_focus/css/style.css" rel="stylesheet">
+    <!-- Customize -->
+  <link href="~/theme_focus/css/customize.css" rel="stylesheet">
 </head>
 
 <body class="pace-done">
@@ -32,7 +34,7 @@
                     <li><a asp-area="" asp-controller="Home" asp-action="Issues"><i class="ti-comment"></i>問題/需求回報</a>
                     </li>
                     <li class="label">魔法工具箱</li>
-                    <li><a asp-area="" asp-controller="" asp-action=""><i class="ti-package"></i>線上小說轉檔</a></li>
+                    <li><a asp-area="" asp-controller="Books" asp-action="Fetch"><i class="ti-package"></i>線上小說轉檔</a></li>
                     <li><a asp-area="" asp-controller="Home" asp-action="SmartEdit"><i class="ti-wand"></i>智慧修改TXT</a></li>
                     <li><a asp-area="" asp-controller="" asp-action=""><i class="ti-calendar"></i>下載紀錄</a></li>
                     <li class="label">會員專區</li>
@@ -58,25 +60,7 @@
                         </div>
                     </div>
                     <div class="float-right">
-                        <div class="dropdown dib">
-                            <div class="header-icon" data-toggle="dropdown">
-                                <span class="user-avatar">John
-                                    <i class="ti-angle-down f-s-10"></i>
-                                </span>
-                                <div class="drop-down dropdown-profile dropdown-menu dropdown-menu-right">
-                                    <div class="dropdown-content-body">
-                                        <ul>
-                                            <li>
-                                                <a href="#">
-                                                    <i class="ti-power-off"></i>
-                                                    <span>Logout</span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                      <partial name="_LoginPartial" />                        
                     </div>
                 </div>
             </div>
@@ -85,10 +69,6 @@
     <!-- header -->
 
     @RenderBody()
-    @* <div class="container">
-        <main role="main" class="pb-3">            
-        </main>
-    </div> *@
 
     <footer class="border-top footer text-muted">
         <div class="container">
@@ -102,9 +82,6 @@
             </div>
           </div>
     </footer>
-    @* <script src="~/lib/jquery/dist/jquery.min.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script> *@
 
     <!--**********************************
           Scripts

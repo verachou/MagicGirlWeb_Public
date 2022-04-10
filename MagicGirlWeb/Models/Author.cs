@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MagicGirlWeb.Models
 {
-  [Table("AUTHOR")]
+  // [Table("AUTHOR")]
   public class Author : ObjectModel
   {    
     // Model Relation

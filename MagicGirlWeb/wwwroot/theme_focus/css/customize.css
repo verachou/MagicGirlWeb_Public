@@ -1,0 +1,115 @@
+/* Version: 1.0
+*/
+/*-------- css code for customize layout  --------*/
+
+@import url('https://fonts.googleapis.com/css?family=Roboto+Slab:300,400,500,700,900');
+
+/* 修正內容高度不足時側邊欄無法填滿 */
+html{
+  height: 100%;
+}
+body{
+  min-height: 100%;
+}
+/* Color Style
+--------------------------------------------------*/
+/* 顏色補充 */
+.color-darkgrey{
+  color: #868e96!important;
+}
+/* Font Style
+--------------------------------------------------*/
+/* 文字樣式調整 */
+.main .page-header .page-title h1{
+  font-size: 2.5rem;
+  font-family: "Roboto Slab", serif;
+  font-weight: 700;
+}
+.main .page-header .page-title p{
+  line-height: 1.7;
+}
+p{
+  font-size: 15px;
+}
+/* input Placeholder 顏色 */
+.form-control::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #cccccc;
+  opacity: 1; /* Firefox */
+}
+.form-control:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: #cccccc;
+}
+.form-control::-ms-input-placeholder { /* Microsoft Edge */
+  color: #cccccc;
+}
+/* 文字超連結樣式 */
+a.border_b_dotted{
+  border-bottom: dotted 1px;
+}
+/* 列表樣式圖案 */
+ul.list_disc li{
+  list-style: disc;
+}
+/* Layout
+--------------------------------------------------*/
+/* Nav移除下方底線 */
+ul.nav-tabs {
+  border-bottom: 0px;
+}
+.table-receiver{
+  min-width: 75px;
+}
+.aaa{
+  position: relative;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    -ms-flex-align: stretch;
+    align-items: stretch;
+    width: 100%;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-content: center;
+}
+hr{
+  margin-top: 60px;
+  margin-bottom: 60px;
+}
+@media (min-width: 320px) and (max-width: 480px) {
+  hr{
+    margin-top: 30px;
+    margin-bottom: 30px;
+  }
+}
+/* Forms
+--------------------------------------------------*/
+/* input */
+.input-box{
+  position: relative;
+}
+.clear-input{
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 1rem;
+}
+.name-input{
+  padding-right: 3rem;
+}
+.clear-input-img{
+  display: block;
+  opacity: .3;
+}
+/* checkbox */
+input.largerCheckbox {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+input.checkMiddle{
+    vertical-align: middle;
+    display: table-cell;
+    position: relative;
+    margin: 0;
+    margin-right: .5rem;
+}

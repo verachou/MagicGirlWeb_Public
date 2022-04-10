@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using MagicGirlWeb.Models;
 
@@ -14,15 +15,17 @@ using System.Text;
 
 namespace MagicGirlWeb.Controllers
 {
+  [AllowAnonymous]
   public class HomeController : Controller
   {
     private readonly ILogger<HomeController> _logger;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ILogger<HomeController> logger )
     {
       _logger = logger;
     }
 
+    [AllowAnonymous]
     public IActionResult Index()
     {
       return View();
@@ -47,7 +50,7 @@ namespace MagicGirlWeb.Controllers
     public async Task<IActionResult> SmartEdit(SmartEditModel model)
     {
       // -- 資料驗證 -- //
-      if(!ModelState.IsValid)
+      if (!ModelState.IsValid)
       {
         return Error();
 

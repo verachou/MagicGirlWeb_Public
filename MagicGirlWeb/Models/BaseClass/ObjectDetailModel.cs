@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MagicGirlWeb.Models
 {
-  public abstract class ObjectDetailModel
+  public abstract class ObjectDetailModel:IObjectDetailModel
   {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

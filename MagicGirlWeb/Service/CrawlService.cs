@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
@@ -21,80 +22,79 @@ namespace MagicGirlWeb.Service
     private List<TaskInfo> _taskList;
     public CrawlService(ILoggerFactory loggerFactory, IConfiguration config)
     {
-      this._loggerFactory = loggerFactory;
+      _loggerFactory = loggerFactory;
       string className = System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.Name;
-      this._logger = loggerFactory.CreateLogger(className);
-      this._config = config;
-      this._coreManager = new CoreManager(_loggerFactory, _config);
-      this._taskList = new List<TaskInfo>();
+      _logger = loggerFactory.CreateLogger(className);
+      _config = config;
+      _coreManager = new CoreManager(_loggerFactory, _config);
+      _taskList = new List<TaskInfo>();
     }
+
     public Book Analysis(string url)
     {
-      Book book = null;
-
       IPlugin plugin = _coreManager.PluginManager.GetPlugin(url);
       TaskInfo taskInfo = _coreManager.TaskManager.AddTask(plugin, url);
       _coreManager.TaskManager.AnalysisTask(taskInfo);
-      if (taskInfo.Status == DownloadStatus.AnalysisComplete)
+      if (taskInfo.Status != DownloadStatus.AnalysisComplete)
       {
-        _taskList.Add(taskInfo);
-        BookWebsite bookWebsite = new BookWebsite(
-              taskInfo.Url,
-              taskInfo.BasePlugin.GetHash(url), // SourceId
-              taskInfo.BeginSection,            // LastPageFrom
-              taskInfo.EndSection               // LastPageTo
-          );
-
-        List<BookWebsite> bookWebsites = new List<BookWebsite>();
-        bookWebsites.Add(bookWebsite);
-
-        Author author = new Author(taskInfo.Author);
-
-        book = new Book(
-            taskInfo.Title,
-            taskInfo.TotalSection,
-            author,
-            bookWebsites
-          );
+        return null;
       }
+      Author author = new Author(taskInfo.Author);
+      Book book = new Book(taskInfo.Title, author.Id, taskInfo.TotalSection);
+      book.Author = author;
+      book.BookWebsites = new List<BookWebsite>();
+      BookWebsite bookWebsite = new BookWebsite(
+            taskInfo.Url,
+            book.Id,
+            taskInfo.BasePlugin.GetHash(url), // SourceId
+            taskInfo.BeginSection,            // LastPageFrom
+            taskInfo.EndSection               // LastPageTo
+        );
+      book.BookWebsites.Add(bookWebsite);
+      _taskList.Add(taskInfo);
+
       return book;
     }
 
-    public bool Download(string url, int lastPageFrom, int lastPageTo, FileStream fileStream)
+    public Book Download(
+      string url, 
+      int lastPageFrom, 
+      int lastPageTo,
+      string filePath)
     {
+      // TaskInfo taskInfo = _taskList.Find(x => x.Url == url);
+      Book book = Analysis(url);
       TaskInfo taskInfo = _taskList.Find(x => x.Url == url);
 
       // 若該url找不到對應的taskInfo，則自動將其分析後取得該taskInfo
-      if (taskInfo == null)
-      {
-        _logger.LogInformation(CustomMessage.ObjectIsNull, nameof(taskInfo));
-        Analysis(url);
-        taskInfo = _taskList.Find(x => x.Url == url);
-      }
+      // if (taskInfo == null)
+      // {
+      //   _logger.LogInformation(CustomMessage.ObjectIsNull, nameof(taskInfo));
+      //   Analysis(url);
+      //   taskInfo = _taskList.Find(x => x.Url == url);
+      // }
       taskInfo.BeginSection = lastPageFrom;
       taskInfo.EndSection = lastPageTo;
+
       _coreManager.TaskManager.DownloadTask(taskInfo);
 
-      if (taskInfo.Status != DownloadStatus.DownloadComplete)
-      {
-        return false;
-      }
+      book.BookWebsites.FirstOrDefault().LastPageFrom = lastPageFrom;
+      book.BookWebsites.FirstOrDefault().LastPageTo = lastPageTo;
+      book.BookWebsites.FirstOrDefault().TaskStatus = Common.DownloadStatusAdapter(taskInfo.Status);
 
-      try
+      if (taskInfo.Status == DownloadStatus.DownloadComplete)
       {
-        using (FileStream downloadfile = new FileStream(taskInfo.SaveFullPath, FileMode.Open))
+        try
         {
-          downloadfile.CopyTo(fileStream);
-          fileStream.Dispose();
+          File.Copy(taskInfo.SaveFullPath, filePath, true);         // true: 目標路徑存在檔案會直接覆蓋掉 
+        }
+        catch (Exception ex)
+        {
+          _logger.LogError(ex.ToString());
         }
       }
-      catch (Exception ex)
-      {
-        _logger.LogError(ex.ToString());
-        return false;
-      }
 
-      return true;
+      return book;
     }
 
     public void DeleteLocalFile(string url)

@@ -1,0 +1,312 @@
+@model MagicGirlWeb.Models.BooksViewModels.FetchViewModel
+
+@{
+  ViewData["Title"] = "[低調] 線上小說轉檔";
+}
+
+<div class="content-wrap">
+  <div class="main">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="page-header">
+            <div class="page-title">
+              <h1 class="p-b-30">線上小說轉檔</h1>
+              <span id="m1-1">
+                <p>主程式來自
+                  <a href="https://rngmontoli.blogspot.com/2013/06/csnovelcrawler.html"
+                    class="color-primary border_b_dotted">CSNovelCrawler</a> /
+                  <a href="https://github.com/rngmontoli/CSNovelCrawler"
+                    class="color-primary border_b_dotted">程式碼</a><br>
+                  轉成線上版的動力來自於人性...雖然人在外面但就是想馬上用 kindle 看小說啊!!!! 快把小說用 txt 寄到我的 kindle!!!!!
+                </p>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <section id="main-content">
+        <div class="row">
+          <div class="col-lg-8">
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs customtab" role="tablist">
+              <li class="nav-item"> <a class="nav-link active" data-toggle="tab" href="#fetchCard" role="tab"><span
+                    class="hidden-sm-up"><i class="ti-book"></i></span> <span class="hidden-xs-down">分析轉檔</span></a>
+              </li>
+              <li class="nav-item"> <a class="nav-link" data-toggle="tab" href="#searchCard" role="tab"><span
+                    class="hidden-sm-up"><i class="ti-search"></i></span> <span class="hidden-xs-down">搜尋小說</span></a>
+              </li>
+            </ul>
+            <!-- Tab panes -->
+            <div class="tab-content">
+              <!-- Modal information -->
+              <div class="modal fade" id="ModalInfo" tabindex="-1" role="dialog" aria-labelledby="ModalInfoTitle"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="ModalInfoTitle">支援範圍</h5>
+                    </div>
+                    <div class="modal-body">
+                      <ul class="list_disc p-l-16">
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://czbooks.net/">小說狂人</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://www.ptt.cc/bbs/index.html">PTT網頁版</a>
+                        </li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://www.ck101.org/">卡提諾小說</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://ck101.com/novel/">卡提諾論壇小說頻道</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://blog.fc2.com">FC2網誌</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="http://big5.quanben5.com">全本小說網</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://www.oldtimescc.cc/">舊時光</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://www.wfxs.org/">微風小說網</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://www.eyny.com/forum.php?gid=1747">伊莉小說</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://www.biqudu.com/">筆趣讀</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted" href="https://8book.com/">8
+                            Book</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://tw.hjwzw.com/">黃金屋</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://www.ranwena.com/">燃文小說</a></li>
+                        <li>支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="http://book.sfacg.com/">SF輕小說</a></li>
+                        <li>可能支援&nbsp;<a target="_blank" class="color-primary border_b_dotted"
+                            href="https://comicbus.com/">8 Comic</a></li>
+
+                        <li><del>支援&nbsp;<a target="_blank" class="border_b_dotted"
+                              href="http://www.52ggd.com/">52格格黨</a></del>(文載不全，暫無法使用)</li>
+                        <li><del>支援&nbsp;<a target="_blank" class="border_b_dotted"
+                              href="https://www.sto.cx/">思兔線上閱讀</a></del>(被擋，暫無法使用)</li>
+                      </ul>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- /# Modal information -->
+              <!-- Tab fetch -->
+              <div id="fetchCard" class="tab-pane active card p-b-60 m-t-0" role="tabpanel">
+                <!-- <div class="card-title"></div> -->
+                <div class="card-body">
+                  <div class="basic-elements">
+
+                    <form asp-controller="Books" asp-action="Fetch" enctype="multipart/form-data" method="post">
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <div class="form-group m-b-10">
+                            <label>網址
+                              <a href="" data-toggle="modal" data-target="#ModalInfo" class="m-r-10" title="支援書庫列表">
+                                <span><i class="fa fa-info-circle color-darkgrey"></i></span>
+                              </a>
+                            </label>
+                            <div class="input-box input-group-flat position-relative">
+                              @* <input asp-for="Url" id="txtTargetUrl" type="url" class="form-control name-input"
+                                placeholder="http://example.com/..." oninput="ToggleClearTarget();"> *@
+                              @Html.TextBoxFor(model => model.Url,
+                              new { name="txtTargetUrl", @class = "form-control name-input",
+                              placeholder="http://example.com/...", type = "url", oninput="ToggleClearTarget();" })
+                              <a href="javascript:;" id="iconClearTargetUrl" class="clear-input position-absolute">
+                                <img src="./theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-6">
+                          <input type="submit" value="分析" formaction="FetchAnalysis" class="btn btn-primary btn-block">
+                        </div>
+                      </div>
+                      <hr>
+                      <div class="row m-b-30">
+                        <div class="col-lg-12">
+                          <div class="input-group">
+                            <label>書名：</label>
+                            <p class="form-control-static">@Model.Title</p>
+                            <input asp-for="Title" type="text" hidden>
+                          </div>
+                        </div>
+                        <div class="col-lg-12">
+                          <div class="input-group input-group-flat">
+                            <input asp-for="PageFrom" type="text" class="form-control m-r-5">
+                            <p>頁 到</p>
+                            <input asp-for="PageTo" type="text" class="form-control m-l-5 m-r-5">
+                            <p>頁</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-12"><label>收件人</label></div>
+                        <div class="col-lg-12 m-b-18">
+                          <input type="checkbox" class="largerCheckbox checkMiddle" name="clickAll" id="clickAll">
+                          <label for="clickAll" class="color-darkgrey">全選</label>
+                        </div>
+                        @{
+                          int i = 0;
+                        }
+                        @foreach (var item in Model.AccountEmails)
+                        {
+                          <div class="col-sm-6">
+                            <input class="largerCheckbox checkMiddle" type="checkbox" id="checkEmail@(i)"
+                            name="checkEmail" value="@item.Email" checked=@item.Checked>
+                            <label for="checkEmail@(i++)">@item.Description</label>
+                          </div>
+                        }
+                      </div>
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <div class="form-group m-b-10">
+                            <label>自行輸入Email</label>
+                            <div class="input-box input-group-flat position-relative">
+                              <input asp-for="CustomEmail" id="txtTargetEmail" type="email"
+                                class="form-control name-input" placeholder="a01@example.com"
+                                oninput="ToggleClearTarget();">
+                              <a href="javascript:;" id="iconClearTargetEmail" class="clear-input position-absolute">
+                                <img src="./theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                        <input asp-for="isDownload" type="checkbox" id="checkDownload" hidden>
+                        <div class="col-lg-4 order-3 order-lg-2">
+                          <input type="submit" formaction="FetchPost" class="btn btn-default btn-block"
+                            value="下載 TXT" id="clickDownload"></button>
+                        </div>
+                        <div class="col-lg-8 order-2 order-lg-3 order-xs-last">
+                          <input type="submit" formaction="FetchPost" class="btn btn-primary btn-block"
+                            value="傳 送" id="clickSend"></button>
+                        </div>
+                        <!-- column -->
+                      </div>
+                      <!-- row -->
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <!-- Tab search -->
+              <div id="searchCard" class="tab-pane card p-b-60 m-t-0" role="tabpanel">
+                <!-- <div class="card-title"></div> -->
+                <div class="card-body">
+                  <div class="basic-elements">
+
+                    <form asp-controller="Books" asp-action="Fetch" enctype="multipart/form-data" method="post">
+                      <div class="row">
+                        <div class="col-lg-12">
+                          <div class="form-group m-b-10">
+                            <label>Google 可支援的小說<a href="" data-toggle="modal" data-target="#ModalInfo" class="m-r-10"
+                                title="支援書庫列表">
+                                <span><i class="fa fa-info-circle color-darkgrey"></i></span>
+                              </a> </label>
+                            <div class="input-box input-group-flat position-relative">
+                              @* <input name="txtTargetGoogle" type="text" class="form-control name-input"
+                                placeholder="請輸入書名或作者" oninput="ToggleClearTarget();"> *@
+                              <input name="txtTargetGoogle" type="text" class="form-control name-input"
+                                placeholder="請輸入書名或作者" oninput="ToggleClearTarget();">
+                              <a href="javascript:;" id="iconClearTargetGoogle" class="clear-input position-absolute">
+                                <img src="./theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-lg-6">
+                          <button class="btn btn-primary btn-block">搜尋</button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!-- /# Tab panes -->
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+<!-- contain-wrap -->
+
+
+<!--**********************************
+          Scripts
+      ***********************************-->
+@section Scripts {
+<script type="text/javascript">
+  //輸入框有值時出現清除按鈕
+  $(function () {
+    ToggleClearTarget();
+  });
+
+  function ToggleClearTarget() {
+    if ($('#txtTargetUrl').val() === '') {
+      $('#iconClearTargetUrl').hide();
+    }
+    else {
+      $('#iconClearTargetUrl').show().attr("oppacity", ".3");
+    }
+    if ($('#txtTargetEmail').val() === '') {
+      $('#iconClearTargetEmail').hide();
+    }
+    else {
+      $('#iconClearTargetEmail').show().attr("oppacity", ".3");
+    }
+    if ($('#txtTargetGoogle').val() === '') {
+      $('#iconClearTargetGoogle').hide();
+    }
+    else {
+      $('#iconClearTargetGoogle').show().attr("oppacity", ".3");
+    }
+  }
+
+  //清除網址
+  $('#iconClearTargetUrl').click(function () {
+    $('#txtTargetUrl').val('');
+    $('#iconClearTargetUrl').hide();
+  });
+  $('#iconClearTargetEmail').click(function () {
+    $('#txtTargetEmail').val('');
+    $('#iconClearTargetEmail').hide();
+  });
+  $('#iconClearTargetGoogle').click(function () {
+    $('#txtTargetGoogle').val('');
+    $('#iconClearTargetGoogle').hide();
+  });
+
+  //全選清單
+  $("#clickAll").click(function () {
+    if ($("#clickAll").prop("checked")) {
+      $("input[name='checkEmail']").each(function () {
+        $(this).prop("checked", true);
+      });
+    } else {
+      $("input[name='checkEmail']").each(function () {
+        $(this).prop("checked", false);
+      });
+    }
+  });
+
+  //設定寄信或下載
+  $("#clickDownload").click(function () {
+    if ($("#checkDownload").prop("checked", false)) {
+      $("#checkDownload").prop("checked", true)
+    }
+  });
+  $("#clickSend").click(function () {
+    if ($("#checkDownload").prop("checked", true)) {
+      $("#checkDownload").prop("checked", false)
+    }
+  });
+
+
+</script>
+
+}

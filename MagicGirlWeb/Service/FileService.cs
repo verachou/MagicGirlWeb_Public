@@ -44,16 +44,15 @@ namespace MagicGirlWeb.Service
     // https://googleapis.dev/dotnet/Google.Apis.Drive.v3/latest/api/Google.Apis.Drive.v3.FilesResource.GetRequest.html#Google_Apis_Drive_v3_FilesResource_GetRequest_MediaDownloader
     public bool Download(
         string fileId,
-        FileStream fileStream
-    )
+        string filePath)
     {
       // Get the media get request object.
       try
       {
-        using (fileStream)
+        using (var stream = new FileStream(filePath, FileMode.OpenOrCreate))
         {
           FilesResource.GetRequest getRequest = _drivceService.Files.Get(fileId);
-          getRequest.Download(fileStream);
+          getRequest.Download(stream);
         }
       }
       catch (Exception ex)
@@ -66,13 +65,11 @@ namespace MagicGirlWeb.Service
     }
 
     public string Upload(
-      string fileName,
       string filePath,
       string mimeType,
-      string description
-    )
+      string description)
     {
-      string FileFullName = filePath + @"\" + fileName;
+      string fileName = Path.GetFileName(filePath); 
       var fileMetadata = new Google.Apis.Drive.v3.Data.File();
       fileMetadata.Name = fileName;
       fileMetadata.Description = description;
@@ -100,7 +97,7 @@ namespace MagicGirlWeb.Service
         FilesResource.UpdateMediaUpload updateRequest;
         string fileId = result.Files[0].Id;
 
-        using (var stream = new FileStream(FileFullName, FileMode.OpenOrCreate))
+        using (var stream = new FileStream(filePath, FileMode.OpenOrCreate))
         {
           updateRequest = _drivceService.Files.Update(fileMetadata, fileId, stream, mimeType);
           updateRequest.Upload();
@@ -112,15 +109,30 @@ namespace MagicGirlWeb.Service
       {
         FilesResource.CreateMediaUpload request;
         fileMetadata.Parents = _folderIds;
-        using (var stream = new FileStream(FileFullName, FileMode.Open))
+        using (var stream = new FileStream(filePath, FileMode.Open))
         {
           request = _drivceService.Files.Create(fileMetadata, stream, mimeType);
           request.Fields = "id";
-          request.Upload();
+          var reqResult = request.Upload();
+          if(reqResult.Exception != null)
+          {
+            _logger.LogWarning(reqResult.Exception.Message);
+          }
           var file = request.ResponseBody;
           return file.Id;
         };
       }
+    }
+
+
+    public void ClearLocalFolder(string folderPath)
+    {
+      DirectoryInfo directory = new DirectoryInfo(folderPath);
+      FileInfo[] files = directory.GetFiles();
+      foreach (FileInfo file in files)
+      {
+        file.Delete();
+      }      
     }
 
 
@@ -134,6 +146,8 @@ namespace MagicGirlWeb.Service
         this.GoogleCredential = GoogleCredential.FromFile(credFilePath).CreateScoped(scopes);
       }
     }
+
+    
 
 
   }
