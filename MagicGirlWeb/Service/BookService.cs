@@ -29,6 +29,11 @@ namespace MagicGirlWeb.Service
       return _unitOfWork.BookRepository.GetBySourceId(sourceId);
     }
 
+    public IEnumerable<BookDownload> GetBookDownloadAll()
+    {
+      return _unitOfWork.BookDownloadRepository.GetAll();
+    }
+
     public Book InsertBook(
       string bookName,
       string authorName,

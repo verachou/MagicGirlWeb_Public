@@ -4,10 +4,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MagicGirlWeb.Models.BooksViewModels
 {
-  public class FetchViewModel
+  public class FetchView
   {
-    
-
     [StringLength(50, ErrorMessage = "Cannot be longer than 50 characters.")]
     public string Title { get; set; }
 

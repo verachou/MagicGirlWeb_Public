@@ -15,7 +15,7 @@ namespace MagicGirlWeb.Repository
     private AuthorRepository _authorRepository;
     private BookRepository _bookRepository;
     private GenericRepository<BookWebsite> _bookWebsiteRepository;
-    private GenericRepository<BookDownload> _bookDownloadRepository;
+    private BookDownloadRepository _bookDownloadRepository;
 
     public UnitOfWork(MagicContext context)
     {
@@ -81,13 +81,13 @@ namespace MagicGirlWeb.Repository
       }
     }
 
-    public GenericRepository<BookDownload> BookDownloadRepository
+    public BookDownloadRepository BookDownloadRepository
     {
       get
       {
         if (this._bookDownloadRepository == null)
         {
-          this._bookDownloadRepository = new GenericRepository<BookDownload>(_context);
+          this._bookDownloadRepository = new BookDownloadRepository(_context);
         }
         return _bookDownloadRepository;
       }

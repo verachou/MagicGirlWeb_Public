@@ -10,6 +10,8 @@ namespace MagicGirlWeb.Service
     Book GetBookByUrl(string url);
 
     Book GetBookBySourceId(string sourceId);
+
+    IEnumerable<BookDownload> GetBookDownloadAll();
     
     Book InsertBook(
       string bookName,

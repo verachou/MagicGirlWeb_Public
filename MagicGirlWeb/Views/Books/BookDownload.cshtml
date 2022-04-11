@@ -1,0 +1,85 @@
+@model IEnumerable<MagicGirlWeb.Models.BooksViewModels.BookDownloadView>
+
+@{
+  ViewData["Title"] = "[低調] 線上小說轉檔";
+}
+<div class="content-wrap">
+  <div class="main">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="page-header">
+            <div class="page-title">
+              <h1 class="p-b-30">下載紀錄</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+      <section id="main-content">
+        <div class="row">
+          <div class="col-lg-8">
+            <div class="card">
+              <div class="card-body">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>
+                        <a asp-action="BookDownload"
+                          asp-route-sortOrder="@ViewData["IdSortParm"]">@Html.DisplayNameFor(model
+                          =>
+                          model.Id)</a>
+                      </th>
+                      <th>
+                        @Html.DisplayNameFor(model => model.Title)
+                      </th>
+                      <th>
+                        <a asp-action="BookDownload"
+                          asp-route-sortOrder="@ViewData["PageSortParm"]">@Html.DisplayNameFor(model =>
+                          model.TotalPage)</a>
+                      </th>
+                      <th>
+                        <a asp-action="BookDownload"
+                          asp-route-sortOrder="@ViewData["DateSortParm"]">@Html.DisplayNameFor(model =>
+                          model.DownloadDate)</a>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach (var item in Model)
+                    {
+                      <tr>
+                        <td>
+                          @Html.DisplayFor(modelItem => item.Id)
+                        </td>
+                        <td>
+                          @if (@item.SourceId != null)
+                          {
+                            <a asp-action="CloudFile" asp-route-sourceId="@item.SourceId"
+                          class="color-primary border_b_dotted">@Html.DisplayFor(modelItem =>
+                          item.Title)</a>
+                          }
+                          else
+                          {
+                            @Html.DisplayFor(modelItem => item.Title)
+                          }
+
+                        </td>
+                        <td>
+                          @Html.DisplayFor(modelItem => item.TotalPage)
+                        </td>
+                        <td>
+                          @Html.DisplayFor(modelItem => item.DownloadDate)
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div> <!-- col-lg-8 -->
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+<!-- contain-wrap -->

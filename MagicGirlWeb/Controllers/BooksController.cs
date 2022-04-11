@@ -28,7 +28,7 @@ namespace MagicGirlWeb
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IAccountService _accountService;
     private readonly IBookService _bookService;
-    private readonly ICrawlService _crawService;
+    private readonly ICrawlService _crawlService;
     private readonly IFileService _fileService;
     private readonly NotificationService _notificationService;
     private readonly string _fileDir;
@@ -47,7 +47,7 @@ namespace MagicGirlWeb
       _userManager = userManager;
       _accountService = new AccountService(loggerFactory, context);
       _bookService = new BookService(loggerFactory, context);
-      _crawService = new CrawlService(loggerFactory, config);
+      _crawlService = new CrawlService(loggerFactory, config);
       _fileService = new FileService(loggerFactory, config);
       _notificationService = new NotificationService(loggerFactory, config);
       _fileDir = config["WebSaveFolder"];
@@ -196,19 +196,19 @@ namespace MagicGirlWeb
     }
 
     [HttpGet]
-    public async Task<IActionResult> Fetch(FetchViewModel fetchView)
+    public async Task<IActionResult> Fetch(FetchView fetchView)
     {
       var accountId = _userManager.GetUserId(User);
 
       if (fetchView.AccountEmails == null)
       {
-        fetchView.AccountEmails = new List<FetchViewModel.AccountEmailView>();
+        fetchView.AccountEmails = new List<FetchView.AccountEmailView>();
 
         var emails = _accountService.GetEmailAll();
         emails.OrderBy(e => e.AccountId);
         foreach (var email in emails)
         {
-          var checkedEmail = new FetchViewModel.AccountEmailView();
+          var checkedEmail = new FetchView.AccountEmailView();
           checkedEmail.Email = email.Email;
           checkedEmail.Description = email.Description;
           if (email.AccountId == accountId)
@@ -222,11 +222,11 @@ namespace MagicGirlWeb
     }
 
     [HttpPost]
-    public ActionResult FetchAnalysis(FetchViewModel fetchView)
+    public ActionResult FetchAnalysis(FetchView fetchView)
     {
       if (ModelState.IsValid)
       {
-        Book book = _crawService.Analysis(fetchView.Url);
+        Book book = _crawlService.Analysis(fetchView.Url);
         fetchView.Title = book.Name;
         fetchView.PageFrom = 1;
         fetchView.PageTo = book.TotalPage;
@@ -236,32 +236,14 @@ namespace MagicGirlWeb
     }
 
     [HttpPost]
-    public ActionResult FetchSend(FetchViewModel fetchView)
-    {
-      string fileName = String.Format("{0}.txt", fetchView.Title);
-      string filePath = Path.Combine(_fileDir, fileName);
-      string subject = String.Format(_config["MailSetting:Fatch:Subject"], Path.GetFileNameWithoutExtension(filePath));
-      string body = _config["MailSetting:Fatch:Body"];
-
-      if (ModelState.IsValid)
-        _crawService.Download(
-          fetchView.Url,
-          fetchView.PageFrom,
-          fetchView.PageTo,
-          filePath);
-
-      return View();
-    }
-
-    [HttpPost]
-    public ActionResult FetchPost(FetchViewModel fetchView)
+    public ActionResult FetchPost(FetchView fetchView)
     {
       if (!ModelState.IsValid)
         return null;
 
       string fileName = String.Format("{0}.txt", fetchView.Title);
       string filePath = Path.Combine(_fileDir, fileName);
-      Book currBook = _crawService.Analysis(fetchView.Url);
+      Book currBook = _crawlService.Analysis(fetchView.Url);
       Book saveBook = _bookService.GetBookBySourceId(currBook.BookWebsites.FirstOrDefault().SourceId);
       Book downloadBook;
       BookStatus status = BookStatus.BookNotExist;
@@ -294,7 +276,7 @@ namespace MagicGirlWeb
           try
           {
             // 下載檔案
-            downloadBook = DownloadBook(fetchView, filePath);
+            downloadBook = CrawlBook(fetchView, filePath);
 
             if (downloadBook == null)
               return null;
@@ -325,7 +307,7 @@ namespace MagicGirlWeb
           try
           {
             // 下載檔案
-            downloadBook = DownloadBook(fetchView, filePath);
+            downloadBook = CrawlBook(fetchView, filePath);
 
             if (downloadBook == null)
               return null;
@@ -359,7 +341,7 @@ namespace MagicGirlWeb
             if (!isSuccess)
             {
               // 下載檔案
-              downloadBook = DownloadBook(fetchView, filePath);
+              downloadBook = CrawlBook(fetchView, filePath);
 
               if (downloadBook == null)
                 return null;
@@ -409,7 +391,7 @@ namespace MagicGirlWeb
         foreach (var accountMail in fetchView.AccountEmails)
           mails.Add(accountMail.Email);
 
-      if (fetchView.CustomEmail != null)            
+      if (fetchView.CustomEmail != null)
         mails.Add(fetchView.CustomEmail);
 
       _notificationService.SendMail(
@@ -429,9 +411,9 @@ namespace MagicGirlWeb
       return RedirectToAction(nameof(Fetch), fetchView);
     }
 
-    private Book DownloadBook(FetchViewModel fetchView, string filePath)
+    private Book CrawlBook(FetchView fetchView, string filePath)
     {
-      Book book = _crawService.Download(
+      Book book = _crawlService.Download(
         fetchView.Url,
         fetchView.PageFrom,
         fetchView.PageTo,
@@ -462,7 +444,73 @@ namespace MagicGirlWeb
       BookNotExist
     }
 
+    // GET: Books/BookDownload
+    public async Task<IActionResult> BookDownload(string sortOrder)
+    {
+      ViewData["IdSortParm"] = String.IsNullOrEmpty(sortOrder) ? "id_asc" : "";
+      ViewData["DateSortParm"] = sortOrder == "date" ? "date_desc" : "date";
+      ViewData["PageSortParm"] = sortOrder == "page" ? "page_desc" : "page";
 
+      var bookDownloads = _bookService.GetBookDownloadAll();
+      IEnumerable<BookDownloadView> viewModels = null;
+      viewModels = (from bd in bookDownloads
+                    select new BookDownloadView()
+                    {
+                      Id = bd.Id,
+                      Title = bd.BookWebsite.Book.Name,
+                      TotalPage = bd.BookWebsite.Book.TotalPage,
+                      DownloadDate = bd.CreateDate,
+                      SourceId = bd.BookWebsite.SourceId
+                    }).AsEnumerable();
+
+      switch (sortOrder)
+      {
+        case "id_asc":
+          viewModels = viewModels.OrderBy(bd => bd.Id);
+          break;
+        case "date":
+          viewModels = viewModels.OrderBy(bd => bd.DownloadDate);
+          break;
+        case "page_desc":
+          viewModels = viewModels.OrderByDescending(bd => bd.TotalPage);
+          break;
+        case "page":
+          viewModels = viewModels.OrderBy(bd => bd.TotalPage);
+          break;
+        case "date_desc":
+          viewModels = viewModels.OrderByDescending(bd => bd.DownloadDate);
+          break;
+        default:
+          viewModels = viewModels.OrderByDescending(bd => bd.Id);
+          break;
+      }
+
+      return View(viewModels);
+    }
+
+    // GET: Books/CloudFile/xxxxxxx
+    public async Task<IActionResult> CloudFile(string? sourceId)
+    {
+      if (sourceId == null)
+        return NotFound();
+
+      Book book = _bookService.GetBookBySourceId(sourceId);
+      if (book == null)
+        return NotFound();
+
+      string fileName = String.Format("{0}.txt", book.Name);
+      string filePath = Path.Combine(_fileDir, fileName);
+      string fileId = book.BookWebsites.FirstOrDefault().FileId;
+      bool isSuccess = _fileService.Download(
+              fileId,
+              filePath);
+
+      if (!isSuccess)
+        return NotFound();
+
+      byte[] bytes = System.IO.File.ReadAllBytes(filePath);
+      return File(bytes, "application/octet-stream", fileName);
+    }
 
 
 
