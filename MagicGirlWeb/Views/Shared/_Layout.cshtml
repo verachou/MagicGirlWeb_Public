@@ -1,103 +1,110 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - MagicGirlWeb</title>
-    @* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="~/css/site.css" /> *@
-    <!-- Styles -->
-    <link href="~/theme_focus/css/lib/font-awesome.min.css" rel="stylesheet">
-    <link href="~/theme_focus/css/lib/themify-icons.css" rel="stylesheet">
-    <link href="~/theme_focus/css/lib/menubar/sidebar.css" rel="stylesheet">
-    <link href="~/theme_focus/css/lib/bootstrap.min.css" rel="stylesheet">
-    <link href="~/theme_focus/css/lib/helper.css" rel="stylesheet">
-    <link href="~/theme_focus/css/style.css" rel="stylesheet">
-    <!-- Customize -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>@ViewData["Title"] - MagicGirlWeb</title>
+  <link href="~/theme_focus/css/lib/font-awesome.min.css" rel="stylesheet">
+  <link href="~/theme_focus/css/lib/themify-icons.css" rel="stylesheet">
+  <link href="~/theme_focus/css/lib/menubar/sidebar.css" rel="stylesheet">
+  <link href="~/theme_focus/css/lib/bootstrap.min.css" rel="stylesheet">
+  <link href="~/theme_focus/css/lib/helper.css" rel="stylesheet">
+  @await RenderSectionAsync("Css", required: false)
+  <link href="~/theme_focus/css/style.css" rel="stylesheet">
+  <!-- Customize -->
   <link href="~/theme_focus/css/customize.css" rel="stylesheet">
 </head>
 
 <body class="pace-done">
-    <div class="sidebar sidebar-hide-to-small sidebar-shrink sidebar-gestures">
-        <div class="nano">
-            <div class="nano-content">
-                <div class="logo"><a href="index.html">
-                        <!-- <img src="assets/images/logo.png" alt="" /> --><span>MagicGirlWeb</span>
-                    </a></div>
-                <ul>
-                    <li class="label">Home</li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="Index"><i class="ti-calendar"></i>Home</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="Privacy"><i class="ti-calendar"></i>Privacy</a>
-                    </li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="News"><i class="ti-calendar"></i>更新紀錄</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="Issues"><i class="ti-comment"></i>問題/需求回報</a>
-                    </li>
-                    <li class="label">魔法工具箱</li>
-                    <li><a asp-area="" asp-controller="Books" asp-action="Fetch"><i class="ti-package"></i>線上小說轉檔</a></li>
-                    <li><a asp-area="" asp-controller="Home" asp-action="SmartEdit"><i class="ti-wand"></i>智慧修改TXT</a></li>
-                    <li><a asp-area="" asp-controller="Books" asp-action="BookDownload"><i class="ti-calendar"></i>下載紀錄</a></li>
-                    <li class="label">會員專區</li>
-                    <li><a asp-area="" asp-controller="" asp-action=""><i class="ti-settings"></i>收件Email設定</a></li>
-                    <li><a href="https://drive.google.com/drive/folders/1fD3suIhPcZqMbzE5pqC0A5fPCUmGcuLU"><i
-                                class="ti-cloud-down"></i>VIP魔改區(感恩MORSANGA)</a>
-                    <li><a><i class="ti-close"></i> Logout</a></li>
-                </ul>
-            </div>
-        </div>
+  <div class="sidebar sidebar-hide-to-small sidebar-shrink sidebar-gestures">
+    <div class="nano">
+      <div class="nano-content">
+        <div class="logo"><a href="index">
+            <!-- <img src="assets/images/logo.png" alt="" /> --><span>MagicGirlWeb</span>
+          </a></div>
+        <ul>
+          <li class="label">Home</li>
+          <li><a asp-area="" asp-controller="Home" asp-action="News"><i class="ti-calendar"></i>更新紀錄</a></li>
+          <li><a asp-area="" asp-controller="Home" asp-action="Issues"><i class="ti-comment"></i>問題/需求回報</a></li>
+          @if (SignInManager.IsSignedIn(User))
+          {
+            <li class="label">魔法工具箱</li>
+            <li><a asp-area="" asp-controller="Books" asp-action="Fetch"><i class="ti-package"></i>線上小說轉檔</a></li>
+            <li><a asp-area="" asp-controller="Books" asp-action="SmartEdit"><i class="ti-wand"></i>智慧修改TXT</a></li>
+            <li><a asp-area="" asp-controller="Books" asp-action="BookDownload"><i class="ti-calendar"></i>下載紀錄</a></li>
+            <li class="label">會員專區</li>
+            <li><a asp-area="" asp-controller="Account" asp-action="EmailSetting"><i class="ti-settings"></i>收件Email設定</a>
+            </li>
+            <li><a href="https://drive.google.com/drive/folders/1fD3suIhPcZqMbzE5pqC0A5fPCUmGcuLU"><i
+                class="ti-cloud-down"></i>VIP魔改區(感恩MORSANGA)</a></li>
+            <li class="label">系統管理</li>
+            <li><a asp-area="" asp-controller="Account" asp-action="RoleSetting"><i class="ti-user"></i>角色設定</a></li>
+            @* <li><a><i class="ti-close"></i> Logout</a></li> *@
+          }
+        </ul>
+      </div>
     </div>
-    <!-- /# sidebar -->
+  </div>
+  <!-- /# sidebar -->
 
-    <div class="header">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="float-left">
-                        <div class="hamburger sidebar-toggle">
-                            <span class="line"></span>
-                            <span class="line"></span>
-                            <span class="line"></span>
-                        </div>
-                    </div>
-                    <div class="float-right">
-                      <partial name="_LoginPartial" />                        
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- header -->
-
-    @RenderBody()
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2022 - MagicGirlWeb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-              <div class="footer">
-                <p>2018 © Admin Board. - <a href="#">example.com</a></p>
-              </div>
+  <div class="header">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="float-left">
+            <div class="hamburger sidebar-toggle">
+              <span class="line"></span>
+              <span class="line"></span>
+              <span class="line"></span>
             </div>
           </div>
-    </footer>
+          <!-- User -->
+          <div class="float-right">
+            <partial name="_LoginPartial" />
+          </div>
+          <!-- User -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- header -->
 
-    <!--**********************************
+  @RenderBody()
+
+  <footer class="border-top footer text-muted">
+    <div class="container">
+      &copy; 2022 - MagicGirlWeb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    </div>
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="footer">
+          <p>2018 © Admin Board. - <a href="#">example.com</a></p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!--**********************************
           Scripts
       ***********************************-->
-    <!-- jquery vendor -->
-    <script src="~/theme_focus/js/lib/jquery.min.js"></script>
-    <script src="~/theme_focus/js/lib/jquery.nanoscroller.min.js"></script>
-    <!-- nano scroller -->
-    <script src="~/theme_focus/js/lib/menubar/sidebar.js"></script>
-    <script src="~/theme_focus/js/lib/preloader/pace.min.js"></script>
-    <!-- sidebar -->
-    <script src="~/theme_focus/js/lib/bootstrap.min.js"></script>
-    <!-- bootstrap -->
-    <script src="~/theme_focus/js/scripts.js"></script>
-    <!-- scripit init-->
-    @await RenderSectionAsync("Scripts", required: false)
+  <!-- jquery vendor -->
+  <script src="~/theme_focus/js/lib/jquery.min.js"></script>
+  <script src="~/theme_focus/js/lib/jquery.nanoscroller.min.js"></script>
+  <!-- nano scroller -->
+  <script src="~/theme_focus/js/lib/menubar/sidebar.js"></script>
+  <script src="~/theme_focus/js/lib/preloader/pace.min.js"></script>
+  <!-- sidebar -->
+  <script src="~/theme_focus/js/lib/bootstrap.min.js"></script>
+  <!-- bootstrap -->
+  <script src="~/theme_focus/js/scripts.js"></script>
+  <!-- custom js for _Layout.cshtml -->
+  <script src="~/js/site.js" asp-append-version="true"></script>
+  <!-- script init-->
+  @await RenderSectionAsync("Scripts", required: false)
 </body>
 
 </html>

@@ -5,8 +5,18 @@ namespace MagicGirlWeb.Service
 {
   interface IAccountService
   {
-    // ICollection<AccountEmail> GetEmailByAccountId(int id);
+    ICollection<AccountEmail> GetEmailByAccountId(string id);
     ICollection<AccountEmail> GetEmailAll();
+
+    AccountEmail InsertAccountEmail(
+      string accountId, 
+      string email,
+      string description
+    );
+
+    void DeleteAccountEmail(
+      int accountEmailId
+    );
 
   }
 }

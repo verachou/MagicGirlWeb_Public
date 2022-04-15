@@ -17,6 +17,12 @@ namespace MagicGirlWeb.Service
 
     void DeleteLocalFile(string url);
 
+    string Format(string text, FormatType formatTypes);
 
+  }
+  public enum FormatType
+  {
+    Traditional,
+    DoubleEOL
   }
 }

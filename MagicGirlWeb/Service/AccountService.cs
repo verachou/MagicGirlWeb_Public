@@ -19,16 +19,52 @@ namespace MagicGirlWeb.Service
       _unitOfWork = new UnitOfWork(context);
     }
 
-    // public ICollection<AccountEmail> GetEmailByAccountId(int accountId)
-    // {
-    //   Account account = _unitOfWork.AccountRepository.GetByAccountId(accountId);
-    //   return account.AccountEmails;   
-    // }
+    public ICollection<AccountEmail> GetEmailByAccountId(string accountId)
+    {
+      return _unitOfWork.AccountEmailRepository.GetByAccountId(accountId);
+    }
 
     public ICollection<AccountEmail> GetEmailAll()
     {
-      
       return _unitOfWork.AccountEmailRepository.GetAll().ToList();
+    }
+
+    public AccountEmail InsertAccountEmail(
+      string accountId,
+      string email,
+      string description)
+    {
+      if (email == null || description==null)
+        return null;
+
+      // 檢查是否已建檔
+      AccountEmail accountEmail = _unitOfWork.AccountEmailRepository.GetByAccountAndEmail(accountId, email);
+      if (accountEmail == null)
+      {
+        accountEmail = new AccountEmail();
+        accountEmail.AccountId = accountId;
+        accountEmail.Email = email;
+        accountEmail.Description = description;
+
+        _unitOfWork.AccountEmailRepository.Insert(accountEmail);
+        _unitOfWork.Save();
+      }
+      else
+      {
+        accountEmail.Email = email;
+        accountEmail.Description = description;
+        _unitOfWork.AccountEmailRepository.Update(accountEmail);
+        _unitOfWork.Save();
+      }
+
+      return accountEmail;
+    }
+
+    public void DeleteAccountEmail(int accountEmailId)
+    {
+      _unitOfWork.AccountEmailRepository.Delete(accountEmailId);
+      _unitOfWork.Save();
+
     }
 
   }

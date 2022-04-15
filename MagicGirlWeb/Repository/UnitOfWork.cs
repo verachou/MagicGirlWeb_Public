@@ -10,8 +10,7 @@ namespace MagicGirlWeb.Repository
   public class UnitOfWork : IDisposable
   {
     private MagicContext _context;
-    // private AccountRepository _accountRepository;
-    private GenericRepository<AccountEmail> _accountEmailRepository;
+    private AccountEmailRepository _accountEmailRepository;
     private AuthorRepository _authorRepository;
     private BookRepository _bookRepository;
     private GenericRepository<BookWebsite> _bookWebsiteRepository;
@@ -22,25 +21,13 @@ namespace MagicGirlWeb.Repository
       _context = context;
     }
 
-    // public AccountRepository AccountRepository
-    // {
-    //   get
-    //   {
-    //     if (this._accountRepository == null)
-    //     {
-    //       this._accountRepository = new AccountRepository(_context);
-    //     }
-    //     return _accountRepository;
-    //   }
-    // }
-
-    public GenericRepository<AccountEmail> AccountEmailRepository
+    public AccountEmailRepository AccountEmailRepository
     {
       get
       {
         if (this._accountEmailRepository == null)
         {
-          this._accountEmailRepository = new GenericRepository<AccountEmail>(_context);
+          this._accountEmailRepository = new AccountEmailRepository(_context);
         }
         return _accountEmailRepository;
       }

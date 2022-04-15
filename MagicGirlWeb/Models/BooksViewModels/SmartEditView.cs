@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 using MagicGirlWeb.Models.DataAnnotaions;
 
-namespace MagicGirlWeb.Models
+namespace MagicGirlWeb.Models.BooksViewModels
 {
-  public class SmartEditModel
+  public class SmartEditView
   {
     [Required(ErrorMessage = "Error: 請選取正確的檔案")]
     [AllowFileExtensions("txt", ErrorMessage = "Error: 僅接受txt檔")]

@@ -1,0 +1,140 @@
+@model MagicGirlWeb.Models.AccountViewModels.EmailListView
+
+@{
+  ViewData["Title"] = "[低調] 線上小說轉檔";
+}
+@section Css {
+<link href="~/theme_focus/css/lib/jsgrid/jsgrid-theme.min.css" rel="stylesheet" />
+<link href="~/theme_focus/css/lib/jsgrid/jsgrid.min.css" type="text/css" rel="stylesheet" />
+}
+
+<div class="content-wrap">
+  <div class="main">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="page-header">
+            <div class="page-title">
+              <h1 class="p-b-30">收件設定</h1>
+              <span id="m1-1">
+                <p>VIP User 自行設定多個 email，執行轉檔功能時可寄到這些 email</p>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <section id="main-content">
+        <div class="row">
+          <div class="col-lg-8">
+            <div class="card">
+              <!-- Modal information -->
+              <div class="modal fade" id="ModalEdit-mail" tabindex="-1" role="dialog"
+                aria-labelledby="ModalEdit-mailTitle" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="ModalEdit-mailTitle">新建/編輯信箱</h5>
+                    </div>
+
+                    <form asp-controller="Account" asp-action="EmailSetting" id="formSetting"
+                      enctype="multipart/form-data" method="post">
+                      <div class="modal-body">
+                        <div class="form-group">
+                          <label>名稱(建議20字元內)</label>
+                          <input asp-for="@Model.EditDescription" type="text" class="form-control" placeholder="收件名稱">
+                        </div>
+                        <div class="form-group">
+                          <label>信箱</label>
+                          <input asp-for="@Model.EditEmail" type="email" class="form-control"
+                            placeholder="a01@example.com">
+                        </div>
+                      </div>
+                      <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                      <span asp-validation-for="EditDescription" class="text-danger"></span>
+                      <span asp-validation-for="EditEmail" class="text-danger"></span>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary" form="formSetting">儲存</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <!-- /# Modal information -->
+              <table class=" table table-hover table-responsive-sm email-setting m-b-30">
+                <thead>
+                  <tr class="header-row">
+                    <th scope="col">名稱</th>
+                    <th scope="col">信箱</th>
+                    <th scope="col">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (Model.EmailViews == null)
+                  {
+                    <tr>
+                      <td colspan="3" class="text-center">查無資料</td>
+                    </tr>
+                  }
+                  else
+                  {
+                    @foreach (var item in Model.EmailViews)
+                    {
+                      <tr>
+                        <td>@item.Description</td>
+                        <td class="text-break">@item.Email</td>
+                        <td>
+                          <a href="#" data-toggle="modal" data-target="#ModalEdit-mail" class="color-primary mail-edit"
+                        id="buttonEdit">編輯</a>
+                          <a asp-controller="Account" asp-action="EmailSettingDelete" asp-route-emailId="@item.EmailId"
+                        class="color-primary">刪除</a>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+              <button type="button" class="btn btn-light btn-block m-b-30 create-email mx-auto" data-toggle="modal"
+                data-target="#ModalEdit-mail">
+                <span><i class="ti-plus m-r-10"></i>新增收件信箱</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+<!-- contain-wrap -->
+
+
+
+@section Scripts {
+<!-- JS Grid Scripts Start-->
+<script src="~/theme_focus/js/lib/jsgrid/jsgrid.core.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/jsgrid.load-indicator.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/jsgrid.load-strategies.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/jsgrid.sort-strategies.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/jsgrid.field.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/fields/jsgrid.field.text.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/fields/jsgrid.field.number.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/fields/jsgrid.field.select.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/fields/jsgrid.field.checkbox.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/fields/jsgrid.field.control.js"></script>
+<script src="~/theme_focus/js/lib/jsgrid/jsgrid-init.js"></script>
+<!-- JS Grid Scripts End-->
+
+@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+<script type="text/javascript">
+  //點編輯按鈕時將同排資料放入Modal欄位中
+  $('#buttonEdit').on('click', function () {
+    $tr = $(this).closest('tr');
+    var data = $tr.children("td").map(
+      function () { return $(this).text(); }).get();
+    $('#EditDescription').val(data[0]);
+    $('#EditEmail').val(data[1]);
+  });
+
+</script>
+}

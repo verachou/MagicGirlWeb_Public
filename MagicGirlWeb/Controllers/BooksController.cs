@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Identity;
@@ -14,7 +15,6 @@ using MagicGirlWeb.Data;
 using MagicGirlWeb.Models;
 using MagicGirlWeb.Models.BooksViewModels;
 using MagicGirlWeb.Service;
-
 
 namespace MagicGirlWeb
 {
@@ -513,6 +513,75 @@ namespace MagicGirlWeb
     }
 
 
+    [HttpGet]
+    public IActionResult SmartEdit()
+    {
+      return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SmartEdit(SmartEditView model)
+    {
+      // -- 資料驗證 -- //
+      if (!ModelState.IsValid)
+        // return Error();
+        return View();
+
+      // -- 資料處理 -- //
+      string fileName = model.TxtFile.FileName;
+      string filePath = Path.Combine(_fileDir, fileName);
+      // 微軟的encoding list, 因big5不在.Net Core內建支援的編碼內，需另外下載System.Text.Encoding.CodePages，並在使用前註冊
+      // https://docs.microsoft.com/zh-tw/windows/win32/intl/code-page-identifiers?redirectedfrom=MSDN
+      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+      Encoding encode = Encoding.GetEncoding(model.Encoding);
+
+      try
+      {
+        if (model.TxtFile.Length == 0)
+          // return Error();
+          return View();
+        
+        // 使用OpenReadStream的方式直接得到上傳檔案的Stream
+        StreamReader streamReader = new StreamReader(model.TxtFile.OpenReadStream(), encode);
+          string text = streamReader.ReadToEnd();        
+
+        if (model.ToTW)
+        {
+          text = _crawlService.Format(text, FormatType.Traditional);
+          fileName = _crawlService.Format(fileName, FormatType.Traditional);
+        }
+
+        if (model.DoubleEOL)
+          text = _crawlService.Format(text, FormatType.DoubleEOL);
+
+        // 儲存檔案
+        await System.IO.File.WriteAllTextAsync(filePath, text);
+
+        // -- 寄信 -- //
+        string subject = String.Format(_config["MailSetting:SmartEdit:Subject"], Path.GetFileNameWithoutExtension(filePath));
+        string body = _config["MailSetting:SmartEdit:Body"];
+        List<string> mails = new List<string>();
+        var user = await _userManager.GetUserAsync(User); 
+        var mail = await _userManager.GetEmailAsync(user);
+        mails.Add(mail);
+
+        _notificationService.SendMail(
+          mails,
+          subject,
+          body,
+          filePath);
+
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex.ToString());
+      }
+
+      return View();
+
+    }
+
+  
 
   }
 }

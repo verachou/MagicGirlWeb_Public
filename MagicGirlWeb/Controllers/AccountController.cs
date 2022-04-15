@@ -7,7 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using MagicGirlWeb.Data;
+using MagicGirlWeb.Models;
 using MagicGirlWeb.Models.AccountViewModels;
+using MagicGirlWeb.Service;
 
 namespace MagicGirlWeb
 {
@@ -16,15 +19,21 @@ namespace MagicGirlWeb
     private readonly ILogger<AccountController> _logger;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
-
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IAccountService _accountService;
     public AccountController(
         ILogger<AccountController> logger,
+        ILoggerFactory loggerFactory, 
+        MagicContext context,
         UserManager<IdentityUser> userManager,
-        SignInManager<IdentityUser> signInManager)
+        SignInManager<IdentityUser> signInManager,
+        RoleManager<IdentityRole> roleManager)
     {
       _logger = logger;
       _userManager = userManager;
       _signInManager = signInManager;
+      _roleManager = roleManager;
+      _accountService = new AccountService(loggerFactory, context);
     }
     public IActionResult Index()
     {
@@ -35,6 +44,9 @@ namespace MagicGirlWeb
     [HttpPost]
     public IActionResult ExternalLogin(string provider, string returnUrl = null)
     {
+      if(provider == null)      
+        return RedirectToLocal(returnUrl);
+      
       // Request a redirect to the external login provider.
       var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
       var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
@@ -104,6 +116,86 @@ namespace MagicGirlWeb
       {
         return RedirectToAction("Index", "Home");
       }
+    }
+
+    // GET: Account/EmailSetting
+    [HttpGet]
+    public async Task<IActionResult> EmailSetting()
+    {
+      var accountId = _userManager.GetUserId(User);
+      ICollection<AccountEmail> acoountEmails = _accountService.GetEmailByAccountId(accountId);
+      EmailListView viewModel = new EmailListView();
+      ICollection<EmailListView.EmailView> emailViews = new List<EmailListView.EmailView>();
+      foreach(var item in acoountEmails)
+      {
+        var emailView = new EmailListView.EmailView();
+        emailView.EmailId = item.Id;
+        emailView.Email = item.Email;
+        emailView.Description = item.Description;
+        emailViews.Add(emailView);
+      }
+
+      viewModel.EmailViews = emailViews;      
+      return View(viewModel);
+    }
+
+
+    // POST
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EmailSetting(EmailListView viewModel)
+    {
+      if (ModelState.IsValid)
+      { 
+        var accountId = _userManager.GetUserId(User);
+        var accountEmail = _accountService.InsertAccountEmail(accountId, viewModel.EditEmail, viewModel.EditDescription);
+        if (accountEmail == null)
+        {
+          _logger.LogWarning(CustomMessage.InsertFail, accountId, "AccountEmail");
+          return NotFound();
+        }
+        else
+        {
+          viewModel.EditEmail = null;
+          viewModel.EditDescription = null;
+        }
+      }
+      return RedirectToAction(nameof(EmailSetting));
+    }
+
+    public async Task<IActionResult> EmailSettingDelete(int emailId)
+    {
+      _accountService.DeleteAccountEmail(emailId);
+      return RedirectToAction(nameof(EmailSetting));
+    }
+
+    // GET: Account/EmailSetting
+    public async Task<IActionResult> RoleSetting()
+    {
+      ICollection<RoleView> viewModels = new List<RoleView>();
+      var roles = _roleManager.Roles;
+      foreach(var role in roles)
+      {
+        var viewModel = new RoleView();
+        viewModel.RoleName = role.Name;
+        var users = _userManager.Users;
+        var usersInRole = _userManager.GetUsersInRoleAsync(viewModel.RoleName).Result;
+
+        var accounts = new List<RoleView.Account>();
+        foreach(var user in users)
+        {
+          var account = new RoleView.Account();
+          account.Id = user.Id;
+          account.Name = user.UserName;
+          if(usersInRole.Contains(user))
+            account.isChecked = true;
+          accounts.Add(account);
+        }
+
+        viewModels.Add(viewModel);
+      }
+
+      return View(viewModels);
     }
   }
 }
