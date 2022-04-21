@@ -218,6 +218,9 @@ namespace MagicGirlWeb
         }
       }
 
+      if (fetchView.SupportUrls ==null)
+        fetchView.SupportUrls = _crawlService.PluginInfos.Select(o => o.SupportUrl).ToList();
+
       return View(fetchView);
     }
 
@@ -487,6 +490,12 @@ namespace MagicGirlWeb
 
       return View(viewModels);
     }
+
+    // GET: Books/BookDownloadData
+    // public async Task<IActionResult> BookDownloadData(int pageSize, int pageIndex, string userName, string userId)
+    // {
+
+    // }
 
     // GET: Books/CloudFile/xxxxxxx
     public async Task<IActionResult> CloudFile(string? sourceId)

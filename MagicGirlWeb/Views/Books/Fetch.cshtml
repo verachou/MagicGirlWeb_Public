@@ -177,12 +177,12 @@
                         </div>
                         <input asp-for="isDownload" type="checkbox" id="checkDownload" hidden>
                         <div class="col-lg-4 order-3 order-lg-2">
-                          <input type="submit" formaction="FetchPost" class="btn btn-default btn-block"
-                            value="下載 TXT" id="clickDownload">
+                          <input type="submit" formaction="FetchPost" class="btn btn-default btn-block" value="下載 TXT"
+                            id="clickDownload">
                         </div>
                         <div class="col-lg-8 order-2 order-lg-3 order-xs-last">
-                          <input type="submit" formaction="FetchPost" class="btn btn-primary btn-block"
-                            value="傳 送" id="clickSend">
+                          <input type="submit" formaction="FetchPost" class="btn btn-primary btn-block" value="傳 送"
+                            id="clickSend">
                         </div>
                         <!-- column -->
                       </div>
@@ -208,7 +208,7 @@
                             <div class="input-box input-group-flat position-relative">
                               @* <input name="txtTargetGoogle" type="text" class="form-control name-input"
                                 placeholder="請輸入書名或作者" oninput="ToggleClearTarget();"> *@
-                              <input name="txtTargetGoogle" type="text" class="form-control name-input"
+                              <input id="txtTargetGoogle" type="text" class="form-control name-input"
                                 placeholder="請輸入書名或作者" oninput="ToggleClearTarget();">
                               <a href="javascript:;" id="iconClearTargetGoogle" class="clear-input position-absolute">
                                 <img src="./theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
@@ -217,7 +217,20 @@
                           </div>
                         </div>
                         <div class="col-lg-6">
-                          <button class="btn btn-primary btn-block">搜尋</button>
+                          @{
+                            var strSearch = "";
+                            foreach (var item in Model.SupportUrls)
+                            {
+                              item.Replace("https://", "").Replace("http://", "");
+                              if (strSearch == "")
+                                strSearch = " site:" + item;
+                              else
+                                strSearch += " OR site:" + item;
+                            }
+
+                            <button type="button" class="btn btn-primary btn-block" name="btnSearch"
+                              onclick="GoogleSearch('@(strSearch)')">搜尋</button>
+                          }
                         </div>
                       </div>
                     </form>
@@ -303,7 +316,16 @@
     }
   });
 
-
+  // 組成Google Search查詢字串，另開新視窗
+  function GoogleSearch(strSearch) {
+    var searchNovel = $('#txtTargetGoogle').val();
+    if (searchNovel.length < 2) {
+      alert("請輸入搜尋字串");
+      return;
+    }
+    var url = "https://www.google.com/search?&q=" + encodeURIComponent(searchNovel) + encodeURI(strSearch);
+    window.open(url);
+  };
 </script>
 
 }

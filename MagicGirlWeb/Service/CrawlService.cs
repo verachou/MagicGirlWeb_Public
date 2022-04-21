@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
@@ -15,6 +16,7 @@ namespace MagicGirlWeb.Service
 {
   public class CrawlService : ICrawlService
   {
+    public ICollection<ICrawlService.PluginInfo> PluginInfos { get; set; }
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger _logger;
     private readonly IConfiguration _config;
@@ -28,6 +30,15 @@ namespace MagicGirlWeb.Service
       _config = config;
       _coreManager = new CoreManager(_loggerFactory, _config);
       _taskList = new List<TaskInfo>();
+
+      // 紀錄CSNovelCrawler支援的插件內容
+      PluginInfos = new List<ICrawlService.PluginInfo>();
+      foreach (var plugin in _coreManager.PluginManager.Plugins)
+      {
+        var attribute = (PluginInformationAttribute) Attribute.GetCustomAttribute(plugin.GetType(), typeof(PluginInformationAttribute));
+        var pluginInfo = new PluginInfo(attribute.Name, attribute.FriendlyName, attribute.SupportUrl);
+        PluginInfos.Add(pluginInfo);
+      }
     }
 
     public Book Analysis(string url)
@@ -57,8 +68,8 @@ namespace MagicGirlWeb.Service
     }
 
     public Book Download(
-      string url, 
-      int lastPageFrom, 
+      string url,
+      int lastPageFrom,
       int lastPageTo,
       string filePath)
     {
@@ -112,6 +123,36 @@ namespace MagicGirlWeb.Service
 
     }
 
+    public string Format(string text, FormatType formatTypes)
+    {
+      ITypeSetting typeSetting = null;
+      switch (formatTypes)
+      {
+        case FormatType.Traditional:
+          typeSetting = new Traditional();
+          break;
+        case FormatType.DoubleEOL:
+          typeSetting = new DoubleEOL();
+          break;
+        default:
+          break;
+      }
+      if (typeSetting != null)
+        typeSetting.Set(ref text);
+
+      return text;
+    }
+
+    public class PluginInfo: ICrawlService.PluginInfo
+    {
+      public string Name { get; set; }
+      public string AliasName { get; set; }
+      public string SupportUrl { get; set; }
+
+      public PluginInfo(string name, string alias, string url) : base(name, alias, url)
+      {
+      }
+    }
 
   }
 }

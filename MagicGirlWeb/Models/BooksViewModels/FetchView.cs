@@ -28,6 +28,8 @@ namespace MagicGirlWeb.Models.BooksViewModels
 
     public bool isDownload { get; set; } = true;
 
+    public ICollection<string> SupportUrls { get; set; }
+
     public class AccountEmailView
     {
       [StringLength(100, ErrorMessage = "Cannot be longer than 100 characters.")]
