@@ -21,47 +21,79 @@
       <!-- /# row -->
       <section id="main-content">
         <div class="row">
-          <div class="col-lg-12">
+          <div class="col-lg-8">
             <div class="card">
               <div class="card-body">
                 <div class="basic-elements">
-                  <form asp-controller="Home" asp-action="SmartEdit" enctype="multipart/form-data" method="post">
+                  <form asp-controller="Books" asp-action="SmartEdit" enctype="multipart/form-data" method="post">
                     <div class="row">
-                      <div class="col-lg-6">
-                        <div class="form-group">
-                          @* <input type="file" accept=".txt" name="TxtFile" class="">*@
-                          <input asp-for="TxtFile" accept=".txt">
-                          @Html.ValidationMessageFor(model => model.TxtFile, "", new { @class = "text-danger" })
-                        </div>
+                      <div class="col-lg-12">
+                        <!-- Filepond 限制檔案大小最大20mb -->
+                        <input type="file" accept="text/plain" class="filepond" data-max-file-size="20mb"
+                          data-val="true" asp-for="TxtFile">
+                        @* @Html.ValidationMessageFor(model => model.TxtFile, "", new { @class = "text-danger" }) *@
+                      </div>
+                      <div class="col-lg-12">
                         <div class="form-group">
                           <label>原文格式</label>
-                          <div class="check-container">
-                            <input type="radio" name="Encoding" checked="checked" value="gb2312" class="">
-                            <label>簡體中文GB2312 </label>
-                          </div>
-                          <div class="check-container">
-                            <input type="radio" name="Encoding" value="big5" class="">
-                            <label>繁體中文BIG5</label>
-                          </div>
-                          <div class="check-container">
-                            <input type="radio" name="Encoding" value="utf-8" class="">
-                            <label>UTF-8</label>
-                          </div>
+                          <select asp-for="SelectedEncoding" asp-items="Model.Encodings" class="form-control"></select>
+                          @* <select class="form-control">
+                            <option>簡體中文GB2312</option>
+                            <option>繁體中文BIG5</option>
+                            <option>UTF-8</option>
+                            </select> *@
                         </div>
+                      </div>
+                      <div class="col-lg-12">
                         <div class="form-group">
                           <label>其他格式需求</label>
                           <div class="check-container">
-                            <input type="checkbox" asp-for="ToTW">
+                            <input type="checkbox" asp-for="ToTW" class="largerCheckbox checkMiddle">
                             <label for="ToTW">簡轉繁</label>
                           </div>
                           <div class="check-container">
-                            <input type="checkbox" asp-for="DoubleEOL">
+                            <input type="checkbox" asp-for="DoubleEOL" class="largerCheckbox checkMiddle">
                             <label for="DoubleEOL">換行修正(for Kindle)</label>
                           </div>
                         </div>
-                        <button class="btn btn-default m-b-10 m-l-5">上傳檔案</button>
                       </div>
-                      <!-- column -->
+                      <div class="col-lg-12">
+                        <label>檔案領取方式</label>
+                        <div class="m-b-10">
+                          <div class="check-container">
+                            <input class="largerCheckbox checkMiddle" type="checkbox" asp-for="IsDownload"
+                              id="SEdownload">
+                            <label for="SEdownload">完成後下載檔案(需停留在此頁數分鐘)</label>
+                          </div>
+                          <div class="check-container">
+                            <input class="largerCheckbox checkMiddle" type="checkbox" asp-for="IsEmail" id="SEmail">
+                            <label for="SEmail">完成後寄至信箱</label>
+                          </div>
+                        </div>
+                        <div id="SEmailChecked-show">
+                          <div class="emailSelectBox2">
+                            <div class="row">
+                              <div class="col-lg-12">
+                                <input type="checkbox" class="largerCheckbox checkMiddle" name="clickAll" id="clickAll">
+                                <label for="clickAll" class="color-darkgrey">全選</label>
+                              </div>
+                              @for (var i = 0; i < Model.AccountEmails!.Count; i++)
+                              {
+                                <div class="col-sm-6">
+                                  <input asp-for="@Model.AccountEmails[i].IsChecked" class="largerCheckbox checkMiddle"
+                                  type="checkbox" id="checkEmail@(i)">
+                                  <label for="checkEmail@(i)">@Model.AccountEmails[i].Description</label>
+                                  <input type="hidden" asp-for="@Model.AccountEmails[i].EmailId">
+                                  <input type="hidden" asp-for="@Model.AccountEmails[i].Description">
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-12">
+                        <button class="btn btn-primary btn-block m-b-10 m-l-5" formaction="SmartEditPost">上傳並執行</button>
+                      </div>
                     </div>
                     <!-- row -->
                   </form>
@@ -77,3 +109,55 @@
   </div>
 </div>
 <!-- contain-wrap -->
+
+@section Css {
+<!-- Filepond -->
+<link href="~/theme_focus/css/lib/filepond/filepond.css" rel="stylesheet" />
+}
+
+
+@section Scripts {
+<!-- filepond -->
+<script src="~/theme_focus/js/lib/filepond/filepond.js"></script>
+<script src="~/theme_focus/js/lib/filepond/filepond-plugin-file-validate-type.js"></script>
+<script src="~/theme_focus/js/lib/filepond/filepond-plugin-file-validate-size.js"></script>
+<script>
+  FilePond.registerPlugin(
+    FilePondPluginFileValidateSize,
+    FilePondPluginFileValidateType
+  );
+
+  FilePond.create(
+    document.querySelector('.filepond'),
+    {
+      labelIdle: `將檔案拖曳到這 或 <span class="filepond--label-action btn btn-default btn-sm">選擇檔案</span>`,
+      labelMaxFileSizeExceeded: '檔案太大啦!!!',
+      labelMaxFileSize: '檔案上限是{filesize}',
+      acceptedFileTypes: ['text/plain'],
+    }
+  );
+</script>
+<script type="text/javascript">
+  //SmartEdit 選擇寄送信箱才出現選項
+  $("#SEmail").click(function () {
+    if ($("#SEmail").prop("checked")) {
+      $('#SEmailChecked-show').show();
+    } else {
+      $('#SEmailChecked-show').hide();
+    }
+  });
+
+  //全選清單
+  $("#clickAll").click(function () {
+    if ($("#clickAll").prop("checked")) {
+      $("input[name='checkEmail']").each(function () {
+        $(this).prop("checked", true);
+      });
+    } else {
+      $("input[name='checkEmail']").each(function () {
+        $(this).prop("checked", false);
+      });
+    }
+  });
+</script>
+}

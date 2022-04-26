@@ -196,57 +196,56 @@ namespace MagicGirlWeb
     }
 
     [HttpGet]
-    public async Task<IActionResult> Fetch(FetchView fetchView)
+    public async Task<IActionResult> Fetch(FetchView viewModel)
     {
-      var accountId = _userManager.GetUserId(User);
-
-      if (fetchView.AccountEmails == null)
+      if (viewModel.AccountEmails == null)
       {
-        fetchView.AccountEmails = new List<FetchView.AccountEmailView>();
+        var accountId = _userManager.GetUserId(User);
+        viewModel.AccountEmails = new List<FetchView.AccountEmail>();
 
         var emails = _accountService.GetEmailAll();
         emails.OrderBy(e => e.AccountId);
         foreach (var email in emails)
         {
-          var checkedEmail = new FetchView.AccountEmailView();
-          checkedEmail.Email = email.Email;
+          var checkedEmail = new FetchView.AccountEmail();
+          checkedEmail.EmailId = email.Id;
           checkedEmail.Description = email.Description;
           if (email.AccountId == accountId)
-            checkedEmail.Checked = true;
+            checkedEmail.IsChecked = true;
 
-          fetchView.AccountEmails.Add(checkedEmail);
+          viewModel.AccountEmails.Add(checkedEmail);
         }
       }
 
-      if (fetchView.SupportUrls ==null)
-        fetchView.SupportUrls = _crawlService.PluginInfos.Select(o => o.SupportUrl).ToList();
+      if (viewModel.SupportUrls == null)
+        viewModel.SupportUrls = _crawlService.PluginInfos.Select(o => o.SupportUrl).ToList();
 
-      return View(fetchView);
+      return View(viewModel);
     }
 
     [HttpPost]
-    public ActionResult FetchAnalysis(FetchView fetchView)
+    public ActionResult FetchAnalysis(FetchView viewModel)
     {
       if (ModelState.IsValid)
       {
-        Book book = _crawlService.Analysis(fetchView.Url);
-        fetchView.Title = book.Name;
-        fetchView.PageFrom = 1;
-        fetchView.PageTo = book.TotalPage;
+        Book book = _crawlService.Analysis(viewModel.Url);
+        viewModel.Title = book.Name;
+        viewModel.PageFrom = 1;
+        viewModel.PageTo = book.TotalPage;
       }
 
-      return RedirectToAction(nameof(Fetch), fetchView);
+      return RedirectToAction(nameof(Fetch), viewModel);
     }
 
     [HttpPost]
-    public ActionResult FetchPost(FetchView fetchView)
+    public ActionResult FetchPost(FetchView viewModel)
     {
       if (!ModelState.IsValid)
         return null;
 
-      string fileName = String.Format("{0}.txt", fetchView.Title);
+      string fileName = String.Format("{0}.txt", viewModel.Title);
       string filePath = Path.Combine(_fileDir, fileName);
-      Book currBook = _crawlService.Analysis(fetchView.Url);
+      Book currBook = _crawlService.Analysis(viewModel.Url);
       Book saveBook = _bookService.GetBookBySourceId(currBook.BookWebsites.FirstOrDefault().SourceId);
       Book downloadBook;
       BookStatus status = BookStatus.BookNotExist;
@@ -261,7 +260,7 @@ namespace MagicGirlWeb
         status = BookStatus.BookNotChanged;
         BookWebsite bw = saveBook.BookWebsites.FirstOrDefault();
 
-        if (bw.LastPageFrom != fetchView.PageFrom || bw.LastPageTo != fetchView.PageTo)
+        if (bw.LastPageFrom != viewModel.PageFrom || bw.LastPageTo != viewModel.PageTo)
           status = BookStatus.BookChanged;
       }
       else
@@ -279,7 +278,7 @@ namespace MagicGirlWeb
           try
           {
             // 下載檔案
-            downloadBook = CrawlBook(fetchView, filePath);
+            downloadBook = CrawlBook(viewModel, filePath);
 
             if (downloadBook == null)
               return null;
@@ -310,7 +309,7 @@ namespace MagicGirlWeb
           try
           {
             // 下載檔案
-            downloadBook = CrawlBook(fetchView, filePath);
+            downloadBook = CrawlBook(viewModel, filePath);
 
             if (downloadBook == null)
               return null;
@@ -344,7 +343,7 @@ namespace MagicGirlWeb
             if (!isSuccess)
             {
               // 下載檔案
-              downloadBook = CrawlBook(fetchView, filePath);
+              downloadBook = CrawlBook(viewModel, filePath);
 
               if (downloadBook == null)
                 return null;
@@ -372,15 +371,15 @@ namespace MagicGirlWeb
           return null;
       }
 
-      if (fetchView.isDownload)
+      if (viewModel.IsDownload)
       {
         // 情境：下載檔案    
         _bookService.InsertBookDownload(
-          fetchView.Url,
+          viewModel.Url,
           accountId,
           Constant.DOWNLOAD_STATUS_SUCCESS,
-          fetchView.PageFrom,
-          fetchView.PageTo);
+          viewModel.PageFrom,
+          viewModel.PageTo);
 
         byte[] bytes = System.IO.File.ReadAllBytes(filePath);
         return File(bytes, "application/octet-stream", fileName);
@@ -390,12 +389,16 @@ namespace MagicGirlWeb
       string subject = String.Format(_config["MailSetting:Fetch:Subject"], Path.GetFileNameWithoutExtension(filePath));
       string body = _config["MailSetting:Fetch:Body"];
       List<string> mails = new List<string>();
-      if (fetchView.AccountEmails != null)
-        foreach (var accountMail in fetchView.AccountEmails)
-          mails.Add(accountMail.Email);
+      if (viewModel.AccountEmails != null)
+        foreach (var accountMail in viewModel.AccountEmails)
+          if (accountMail.IsChecked == true)
+          {
+            var mail = _accountService.GetEmailById(accountMail.EmailId);
+            mails.Add(mail.Email);
+          }
 
-      if (fetchView.CustomEmail != null)
-        mails.Add(fetchView.CustomEmail);
+      if (viewModel.CustomEmail != null)
+        mails.Add(viewModel.CustomEmail);
 
       _notificationService.SendMail(
         mails,
@@ -404,22 +407,22 @@ namespace MagicGirlWeb
         filePath);
 
       _bookService.InsertBookDownload(
-        fetchView.Url,
+        viewModel.Url,
         accountId,
         Constant.DOWNLOAD_STATUS_SUCCESS,
-        fetchView.PageFrom,
-        fetchView.PageTo,
+        viewModel.PageFrom,
+        viewModel.PageTo,
         mails);
 
-      return RedirectToAction(nameof(Fetch), fetchView);
+      return RedirectToAction(nameof(Fetch), viewModel);
     }
 
-    private Book CrawlBook(FetchView fetchView, string filePath)
+    private Book CrawlBook(FetchView viewModel, string filePath)
     {
       Book book = _crawlService.Download(
-        fetchView.Url,
-        fetchView.PageFrom,
-        fetchView.PageTo,
+        viewModel.Url,
+        viewModel.PageFrom,
+        viewModel.PageTo,
         filePath);
 
       if (book == null)
@@ -448,64 +451,60 @@ namespace MagicGirlWeb
     }
 
     // GET: Books/BookDownload
-    public async Task<IActionResult> BookDownload(string sortOrder)
+    [HttpGet]
+    public async Task<IActionResult> BookDownload()
     {
-      ViewData["IdSortParm"] = String.IsNullOrEmpty(sortOrder) ? "id_asc" : "";
-      ViewData["DateSortParm"] = sortOrder == "date" ? "date_desc" : "date";
-      ViewData["PageSortParm"] = sortOrder == "page" ? "page_desc" : "page";
-
       var bookDownloads = _bookService.GetBookDownloadAll();
-      IEnumerable<BookDownloadView> viewModels = null;
-      viewModels = (from bd in bookDownloads
-                    select new BookDownloadView()
-                    {
-                      Id = bd.Id,
-                      Title = bd.BookWebsite.Book.Name,
-                      TotalPage = bd.BookWebsite.Book.TotalPage,
-                      DownloadDate = bd.CreateDate,
-                      SourceId = bd.BookWebsite.SourceId
-                    }).AsEnumerable();
+      var viewModel = new BookDownloadView();
+      viewModel.BookDownloads = (from bd in bookDownloads
+                                 select new BookDownloadView.BookDownload()
+                                 {
+                                   Id = bd.Id,
+                                   Title = bd.BookWebsite.Book.Name,
+                                   TotalPage = bd.BookWebsite.Book.TotalPage,
+                                   DownloadDate = bd.CreateDate,
+                                   SourceId = bd.BookWebsite.SourceId
+                                 }).ToList();
 
-      switch (sortOrder)
+      if (viewModel.AccountEmails == null)
       {
-        case "id_asc":
-          viewModels = viewModels.OrderBy(bd => bd.Id);
-          break;
-        case "date":
-          viewModels = viewModels.OrderBy(bd => bd.DownloadDate);
-          break;
-        case "page_desc":
-          viewModels = viewModels.OrderByDescending(bd => bd.TotalPage);
-          break;
-        case "page":
-          viewModels = viewModels.OrderBy(bd => bd.TotalPage);
-          break;
-        case "date_desc":
-          viewModels = viewModels.OrderByDescending(bd => bd.DownloadDate);
-          break;
-        default:
-          viewModels = viewModels.OrderByDescending(bd => bd.Id);
-          break;
-      }
+        var accountId = _userManager.GetUserId(User);
+        viewModel.AccountEmails = new List<BookDownloadView.AccountEmail>();
 
-      return View(viewModels);
+        var emails = _accountService.GetEmailAll();
+        emails.OrderBy(e => e.AccountId);
+        foreach (var email in emails)
+        {
+          var checkedEmail = new BookDownloadView.AccountEmail();
+          checkedEmail.EmailId = email.Id;
+          checkedEmail.Description = email.Description;
+          if (email.AccountId == accountId)
+            checkedEmail.IsChecked = true;
+
+          viewModel.AccountEmails.Add(checkedEmail);
+        }
+      }
+      return View(viewModel);
     }
 
-    // GET: Books/BookDownloadData
-    // public async Task<IActionResult> BookDownloadData(int pageSize, int pageIndex, string userName, string userId)
-    // {
-
-    // }
-
-    // GET: Books/CloudFile/xxxxxxx
-    public async Task<IActionResult> CloudFile(string? sourceId)
+    // Post: Books/BookDownloadData
+    [HttpPost]
+    public async Task<IActionResult> BookDownloadPost(BookDownloadView viewModel, string? id)
     {
+      var sourceId = id;
       if (sourceId == null)
-        return NotFound();
+      {
+        TempData["message"] = "此項目已遺失，請使用線上小說轉檔功能重新下載。";
+        return RedirectToAction(nameof(BookDownload));
+      }
 
       Book book = _bookService.GetBookBySourceId(sourceId);
       if (book == null)
-        return NotFound();
+      {
+        _logger.LogError(CustomMessage.ObjectIsNull, sourceId);
+        TempData["message"] = "此項目已遺失，請使用線上小說轉檔功能重新下載。";
+        return RedirectToAction(nameof(BookDownload));
+      }
 
       string fileName = String.Format("{0}.txt", book.Name);
       string filePath = Path.Combine(_fileDir, fileName);
@@ -515,7 +514,75 @@ namespace MagicGirlWeb
               filePath);
 
       if (!isSuccess)
-        return NotFound();
+      {
+        _logger.LogError(CustomMessage.ObjectIsNull, sourceId);
+        TempData["message"] = "此項目已遺失，請使用線上小說轉檔功能重新下載。";
+        return RedirectToAction(nameof(BookDownload));
+      }
+
+      var accountId = _userManager.GetUserId(User);
+      byte[] bytes = System.IO.File.ReadAllBytes(filePath);
+      // 寄信, 寫入log，return回view
+      string subject = String.Format(_config["MailSetting:BookDownload:Subject"], Path.GetFileNameWithoutExtension(filePath));
+      string body = _config["MailSetting:BookDownload:Body"];
+      List<string> mails = new List<string>();
+      if (viewModel.AccountEmails != null)
+        foreach (var accountMail in viewModel.AccountEmails)
+          if (accountMail.IsChecked == true)
+          {
+            var mail = _accountService.GetEmailById(accountMail.EmailId);
+            mails.Add(mail.Email);
+          }
+
+      _notificationService.SendMail(
+        mails,
+        subject,
+        body,
+        filePath);
+
+      _bookService.InsertBookDownload(
+        book.BookWebsites.FirstOrDefault().Url,
+        accountId,
+        Constant.DOWNLOAD_STATUS_SUCCESS,
+        book.BookWebsites.FirstOrDefault().LastPageFrom,
+        book.BookWebsites.FirstOrDefault().LastPageTo,
+        mails);
+
+      return RedirectToAction(nameof(BookDownload), viewModel);
+
+    }
+
+    // GET: Books/CloudFile/id
+    public async Task<IActionResult> CloudFile(string? id)
+    {
+      var sourceId = id;
+      if (sourceId == null)
+      {
+        TempData["message"] = "此項目已遺失，請使用線上小說轉檔功能重新下載。";
+        return RedirectToAction(nameof(BookDownload));
+      }
+
+      Book book = _bookService.GetBookBySourceId(sourceId);
+      if (book == null)
+      {
+        _logger.LogError(CustomMessage.ObjectIsNull, sourceId);
+        TempData["message"] = "此項目已遺失，請使用線上小說轉檔功能重新下載。";
+        return RedirectToAction(nameof(BookDownload));
+      }
+
+      string fileName = String.Format("{0}.txt", book.Name);
+      string filePath = Path.Combine(_fileDir, fileName);
+      string fileId = book.BookWebsites.FirstOrDefault().FileId;
+      bool isSuccess = _fileService.Download(
+              fileId,
+              filePath);
+
+      if (!isSuccess)
+      {
+        _logger.LogError(CustomMessage.ObjectIsNull, sourceId);
+        TempData["message"] = "此項目已遺失，請使用線上小說轉檔功能重新下載。";
+        return RedirectToAction(nameof(BookDownload));
+      }
 
       byte[] bytes = System.IO.File.ReadAllBytes(filePath);
       return File(bytes, "application/octet-stream", fileName);
@@ -523,13 +590,31 @@ namespace MagicGirlWeb
 
 
     [HttpGet]
-    public IActionResult SmartEdit()
+    public IActionResult SmartEdit(SmartEditView viewModel)
     {
-      return View();
+      if (viewModel.AccountEmails == null)
+      {
+        var accountId = _userManager.GetUserId(User);
+        viewModel.AccountEmails = new List<SmartEditView.AccountEmail>();
+
+        var emails = _accountService.GetEmailAll();
+        emails.OrderBy(e => e.AccountId);
+        foreach (var email in emails)
+        {
+          var checkedEmail = new SmartEditView.AccountEmail();
+          checkedEmail.EmailId = email.Id;
+          checkedEmail.Description = email.Description;
+          if (email.AccountId == accountId)
+            checkedEmail.IsChecked = true;
+
+          viewModel.AccountEmails.Add(checkedEmail);
+        }
+      }
+      return View(viewModel);
     }
 
     [HttpPost]
-    public async Task<IActionResult> SmartEdit(SmartEditView model)
+    public async Task<IActionResult> SmartEditPost(SmartEditView viewModel)
     {
       // -- 資料驗證 -- //
       if (!ModelState.IsValid)
@@ -537,49 +622,63 @@ namespace MagicGirlWeb
         return View();
 
       // -- 資料處理 -- //
-      string fileName = model.TxtFile.FileName;
+      string fileName = viewModel.TxtFile.FileName;
       string filePath = Path.Combine(_fileDir, fileName);
       // 微軟的encoding list, 因big5不在.Net Core內建支援的編碼內，需另外下載System.Text.Encoding.CodePages，並在使用前註冊
       // https://docs.microsoft.com/zh-tw/windows/win32/intl/code-page-identifiers?redirectedfrom=MSDN
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-      Encoding encode = Encoding.GetEncoding(model.Encoding);
+      Encoding encode = Encoding.GetEncoding(viewModel.SelectedEncoding.Value);
 
       try
       {
-        if (model.TxtFile.Length == 0)
+        if (viewModel.TxtFile.Length == 0)
           // return Error();
           return View();
-        
-        // 使用OpenReadStream的方式直接得到上傳檔案的Stream
-        StreamReader streamReader = new StreamReader(model.TxtFile.OpenReadStream(), encode);
-          string text = streamReader.ReadToEnd();        
 
-        if (model.ToTW)
+        // 使用OpenReadStream的方式直接得到上傳檔案的Stream
+        StreamReader streamReader = new StreamReader(viewModel.TxtFile.OpenReadStream(), encode);
+        string text = streamReader.ReadToEnd();
+
+        if (viewModel.ToTW)
         {
           text = _crawlService.Format(text, FormatType.Traditional);
           fileName = _crawlService.Format(fileName, FormatType.Traditional);
         }
 
-        if (model.DoubleEOL)
+        if (viewModel.DoubleEOL)
           text = _crawlService.Format(text, FormatType.DoubleEOL);
 
         // 儲存檔案
         await System.IO.File.WriteAllTextAsync(filePath, text);
 
-        // -- 寄信 -- //
-        string subject = String.Format(_config["MailSetting:SmartEdit:Subject"], Path.GetFileNameWithoutExtension(filePath));
-        string body = _config["MailSetting:SmartEdit:Body"];
-        List<string> mails = new List<string>();
-        var user = await _userManager.GetUserAsync(User); 
-        var mail = await _userManager.GetEmailAsync(user);
-        mails.Add(mail);
 
-        _notificationService.SendMail(
-          mails,
-          subject,
-          body,
-          filePath);
+        if (viewModel.IsEmail)
+        {
+          // 寄信, 寫入log，return回view
+          string subject = String.Format(_config["MailSetting:SmartEdit:Subject"], Path.GetFileNameWithoutExtension(filePath));
+          string body = _config["MailSetting:SmartEdit:Body"];
+          List<string> mails = new List<string>();
+          if (viewModel.AccountEmails != null)
+            foreach (var accountMail in viewModel.AccountEmails)
+              if (accountMail.IsChecked == true)
+              {
+                var mail = _accountService.GetEmailById(accountMail.EmailId);
+                mails.Add(mail.Email);
+              }
 
+          _notificationService.SendMail(
+            mails,
+            subject,
+            body,
+            filePath);
+        }
+
+        if (viewModel.IsDownload)
+        {
+          // 情境：下載檔案    
+          byte[] bytes = System.IO.File.ReadAllBytes(filePath);
+          return File(bytes, "application/octet-stream", fileName);
+        }
       }
       catch (Exception ex)
       {
@@ -590,7 +689,7 @@ namespace MagicGirlWeb
 
     }
 
-  
+
 
   }
 }

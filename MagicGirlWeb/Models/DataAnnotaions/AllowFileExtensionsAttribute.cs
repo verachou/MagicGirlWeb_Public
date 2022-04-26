@@ -42,7 +42,9 @@ namespace MagicGirlWeb.Models.DataAnnotaions
     {
       // Automatically pass if value is null. RequiredAttribute should be used to assert a value is not null.
       // We expect a cast exception if the passed value was not an IFormFile.
-      var extension = Path.GetExtension(((IFormFile)value).FileName).ToUpperInvariant().Replace(".","");
+      if (value == null)
+        return true;
+      var extension = Path.GetExtension(((IFormFile)value).FileName).ToUpperInvariant().Replace(".", "");
       return value == null || ExtensionsNormalized.Contains(extension);
     }
 

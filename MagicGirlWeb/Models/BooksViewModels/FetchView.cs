@@ -21,21 +21,20 @@ namespace MagicGirlWeb.Models.BooksViewModels
     [Required]
     public int PageTo { get; set; } = 1;
 
-    public ICollection<AccountEmailView> AccountEmails { get; set; }
+    public IList<FetchView.AccountEmail> AccountEmails { get; set; }
 
     [DataType(DataType.EmailAddress)]
     public string CustomEmail{ get; set; }
 
-    public bool isDownload { get; set; } = true;
+    public bool IsDownload { get; set; } = true;
 
     public ICollection<string> SupportUrls { get; set; }
 
-    public class AccountEmailView
+    public class AccountEmail
     {
-      [StringLength(100, ErrorMessage = "Cannot be longer than 100 characters.")]
-      public string Email { get; set; }
+      public int EmailId { get; set; }
       public string Description { get; set; }
-      public bool Checked { get; set; } = false;
+      public bool IsChecked { get; set; } = false;
 
     }
   }

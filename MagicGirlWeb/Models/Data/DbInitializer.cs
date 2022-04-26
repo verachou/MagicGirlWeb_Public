@@ -49,7 +49,23 @@ namespace MagicGirlWeb.Models
         // context.Account.Add(a);
         // Task<IdentityResult> createTask = userManager.CreateAsync(user, "Temp_123");
         // createTask.Wait();
-        userManager.CreateAsync(user);
+        var createTask = userManager.CreateAsync(user);
+        createTask.Wait();
+      }
+
+      var roles = new IdentityRole[]
+      {
+        new IdentityRole("ADMIN"),
+        new IdentityRole("ADVANCE_USER"),
+        new IdentityRole("ADVANCE_GUEST"),
+        new IdentityRole("GUEST")
+      };
+
+      foreach (IdentityRole role in roles)
+      {
+        // context.Account.Add(a);
+        var createTask = roleManager.CreateAsync(role);
+        createTask.Wait();
       }
      
 
@@ -200,20 +216,7 @@ namespace MagicGirlWeb.Models
       // }
       // context.SaveChanges();
 
-      var roles = new IdentityRole[]
-      {
-        new IdentityRole { Name = "ADMIN"},
-        new IdentityRole { Name = "ADVANCE_USER"},
-        new IdentityRole { Name = "ADVANCE_GUEST"},
-        new IdentityRole { Name = "GUEST"}
-      };
-
-      foreach (IdentityRole role in roles)
-      {
-        // context.Account.Add(a);
-        roleManager.CreateAsync(role);
-        // createTask.Wait();
-      }
+      
 
 
       // var roles = new Role[]

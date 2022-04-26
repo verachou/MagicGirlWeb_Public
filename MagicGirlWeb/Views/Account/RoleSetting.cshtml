@@ -1,0 +1,71 @@
+@model MagicGirlWeb.Models.AccountViewModels.RoleView
+
+@{
+  ViewData["Title"] = "[低調] 線上小說轉檔";
+}
+
+
+<div class="content-wrap">
+  <div class="main">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-body">
+              <form asp-controller="Account" asp-action="RoleSetting" name="formSetting" enctype="multipart/form-data"
+                method="post">
+                <div class="row form-group">
+                  <div class="col-lg-12">
+                    <label for="">角色權限分配</label>
+                    <select id="ddlRole" asp-for="SelectedRoleId" asp-items="Model.Roles" class="form-control"></select>
+                  </div>
+                </div>
+                <div class="row form-group">
+                  <div class="col-lg-12 m-b-18">
+                    <input type="checkbox" class="largerCheckbox checkMiddle" name="clickAll" id="clickAll">
+                    <label for="clickAll" class="color-darkgrey">全選</label>
+                  </div>
+                  @for (var i = 0; i < Model.Accounts!.Count; i++)
+                  {
+                    <div class="col-sm-6">
+                      <input asp-for="@Model.Accounts[i].IsChecked" class="largerCheckbox checkMiddle" type="checkbox"
+                      id="checkUser@(i)">
+                      <label for="checkUser@(i)">@Model.Accounts[i].Name</label>
+                      <input type="hidden" asp-for="@Model.Accounts[i].Id">
+                      <input type="hidden" asp-for="@Model.Accounts[i].Name">
+                    </div>
+                  }
+                  <div class="col-lg-12 m-t-30">
+                    <button type="submit" class="btn btn-primary btn-block" formaction="RoleSettingSave">儲存</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- contain-wrap -->
+
+@section Scripts{
+<script type="text/javascript">
+  //下拉選單變更時重新查詢資料
+  $("#ddlRole").change(function () {
+    $("form[name='formSetting']").submit();
+  });
+  //全選清單
+  $("#clickAll").click(function () {
+    if ($("#clickAll").prop("checked")) {
+      $("input[id=|'checkUser']").each(function () {
+        $(this).prop("checked", true);
+      });
+    } else {
+      $("input[id=|'checkUser']").each(function () {
+        $(this).prop("checked", false);
+      });
+    }
+  });
+</script>
+}

@@ -1,4 +1,4 @@
-/* Version: 1.0
+/* Version: 1.1
 */
 /*-------- css code for customize layout  --------*/
 
@@ -16,6 +16,10 @@ body{
 /* 顏色補充 */
 .color-darkgrey{
   color: #868e96!important;
+}
+/* Bootsrap Table 斑馬紋顏色調整 */
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgb(0 0 0 / 3%);
 }
 /* Font Style
 --------------------------------------------------*/
@@ -50,8 +54,46 @@ a.border_b_dotted{
 ul.list_disc li{
   list-style: disc;
 }
+/* 文字斷行 */
+.text-break{
+  word-break: break-all;
+}
+/* 文字只在小螢幕置中 */
+.mb-center{
+  text-align: left;
+}
+@media (max-width: 999px) {
+  .mb-center{
+    text-align: center;
+  }
+}
 /* Layout
 --------------------------------------------------*/
+/* 只在大螢幕出現 */
+.lg-show{
+  display: block;
+}
+@media (max-width: 999px) {
+  .lg-show{
+    display: none;
+  }
+}
+/* 只在小螢幕出現 */
+.mb-show{
+  display: none;
+}
+@media (max-width: 999px) {
+  .mb-show{
+    display: block;
+  }
+}
+/* LoginPage 垂直置中 */
+.grid-center{
+  margin: auto;
+	display: grid;
+  justify-content: center;
+  align-items: center; 
+}
 /* Nav移除下方底線 */
 ul.nav-tabs {
   border-bottom: 0px;
@@ -59,19 +101,7 @@ ul.nav-tabs {
 .table-receiver{
   min-width: 75px;
 }
-.aaa{
-  position: relative;
-    display: -ms-flexbox;
-    display: flex;
-    -ms-flex-wrap: wrap;
-    -ms-flex-align: stretch;
-    align-items: stretch;
-    width: 100%;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-content: center;
-}
+/* hr 參數設定 */
 hr{
   margin-top: 60px;
   margin-bottom: 60px;
@@ -81,6 +111,88 @@ hr{
     margin-top: 30px;
     margin-bottom: 30px;
   }
+}
+/* Sidebar不往下移 */
+@media (min-width: 320px) and (max-width: 679px){
+.sidebar {
+    top: 0px !important;
+  }
+}
+/* Dropdown 內容移除第一項的上邊線 */
+.dropdown-content-body>ul>li:first-child{
+  border-top: 0;
+}
+/* IMAGE
+--------------------------------------------------*/
+/* Login頁圖 */
+.MG-Logo-land{
+  width: 66px;
+  height: 87px;
+  background: url(../images/MGLogo_landscape@2x.png) no-repeat;
+  background-size: contain;
+  margin: 24px auto;  
+}
+/* Footer
+--------------------------------------------------*/
+footer{
+  text-align: left;
+  margin-top: 1rem;
+}
+@media (max-width: 999px) {
+  footer{
+    text-align: center;
+    margin-top: 100px;
+  }
+}
+
+
+/* Btn
+--------------------------------------------------*/
+/* GoogleLogin */
+.google-login{
+  vertical-align: middle;
+  border: 1px solid #cccccc;
+  padding: 12px 15px;
+  border-radius: 4px;
+}
+.hero-text .google-login{
+  font-size: 1rem;
+  padding: 12px 30px;
+}
+.create-email{
+  border: 1px dotted #cccccc;
+}
+/* Table
+--------------------------------------------------*/
+/* 收件設定表格樣式 */
+.table-hover tr:hover{
+  background-color: aliceblue !important;
+}
+.table-hover thead tr:hover{
+  background-color: #ffffff !important;
+}
+.email-setting tr th:nth-child(2),.email-setting tr td:nth-child(2){
+  min-width: 100px;
+}
+.email-setting tr th:nth-child(3),.email-setting tr td:nth-child(3){
+  min-width: 50px;
+}
+.email-setting tr td:nth-child(3) a{
+  padding-left: 1rem;
+}
+@media (min-width: 320px) and (max-width: 1140px) {
+  .email-setting tr td:nth-child(3) a{
+    padding-left: 0;
+    display: block;
+  }
+}
+/* Bootstrap-table */
+.fixed-table-pagination .pagination-detail .page-list .btn.dropdown-toggle{
+  padding: 0.25rem 0.5rem;
+  font-size: .875rem;
+  line-height: 1.5;
+  border-radius: 0.2rem;
+  margin: 0 0.25rem;
 }
 /* Forms
 --------------------------------------------------*/
@@ -112,4 +224,45 @@ input.checkMiddle{
     position: relative;
     margin: 0;
     margin-right: .5rem;
+}
+/* SmartEdit */
+.emailSelectBox{
+  position: relative;
+  width: 100%;
+  max-height: 300px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+@media (min-width: 320px) and (max-width: 480px){
+  .emailSelectBox{
+    max-height: 230px;
+  }
+}
+.emailSelectBox2{
+  padding-left: 24px;
+}
+#SEmailChecked-show{
+  display: none;
+  padding: 1rem;
+  border: 1px dashed #ccc;
+}
+/* FilePond
+--------------------------------------------------*/
+.filepond--label-action.btn{
+  text-decoration: none;
+}
+.filepond--panel-center.filepond--panel-root{
+  transform: none;
+  /* background-color: #f7f7f7;
+  border-left: 1px dashed #cccccc;
+  border-right: 1px dashed #cccccc; */
+}
+.filepond--panel-bottom.filepond--panel-root{
+  transform: none;
+  border-bottom: 1px dashed #cccccc;
+}
+.filepond--root.filepond.filepond--hopper{
+  border: 1px dashed #cccccc;
+  border-radius: 4px;
+  background-color: #f7f7f7;  
 }

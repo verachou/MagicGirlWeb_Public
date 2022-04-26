@@ -149,15 +149,14 @@
                           <input type="checkbox" class="largerCheckbox checkMiddle" name="clickAll" id="clickAll">
                           <label for="clickAll" class="color-darkgrey">全選</label>
                         </div>
-                        @{
-                          int i = 0;
-                        }
-                        @foreach (var item in Model.AccountEmails)
+                        @for (var i = 0; i < Model.AccountEmails!.Count; i++)
                         {
                           <div class="col-sm-6">
-                            <input class="largerCheckbox checkMiddle" type="checkbox" id="checkEmail@(i)"
-                            name="checkEmail" value="@item.Email" checked=@item.Checked>
-                            <label for="checkEmail@(i++)">@item.Description</label>
+                            <input asp-for="@Model.AccountEmails[i].IsChecked" class="largerCheckbox checkMiddle"
+                            type="checkbox" id="checkEmail@(i)">
+                              <label for="checkEmail@(i)">@Model.AccountEmails[i].Description</label>
+                            <input type="hidden" asp-for="@Model.AccountEmails[i].EmailId">
+                            <input type="hidden" asp-for="@Model.AccountEmails[i].Description">
                           </div>
                         }
                       </div>
@@ -175,7 +174,7 @@
                             </div>
                           </div>
                         </div>
-                        <input asp-for="isDownload" type="checkbox" id="checkDownload" hidden>
+                        <input asp-for="IsDownload" type="checkbox" id="checkDownload" hidden>
                         <div class="col-lg-4 order-3 order-lg-2">
                           <input type="submit" formaction="FetchPost" class="btn btn-default btn-block" value="下載 TXT"
                             id="clickDownload">
@@ -227,7 +226,6 @@
                               else
                                 strSearch += " OR site:" + item;
                             }
-
                             <button type="button" class="btn btn-primary btn-block" name="btnSearch"
                               onclick="GoogleSearch('@(strSearch)')">搜尋</button>
                           }

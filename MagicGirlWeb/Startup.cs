@@ -37,12 +37,14 @@ namespace MagicGirlWeb
       // services.AddIdentity<ApplicationUser, IdentityRole>()
       //   .AddEntityFrameworkStores<MagicContext>()
       //   .AddDefaultTokenProviders();
-      services.AddDefaultIdentity<IdentityUser>(options =>
-        {
-          // options are set here
-        })
-        .AddRoles<IdentityRole>()
-        .AddEntityFrameworkStores<MagicContext>();
+      // services.AddDefaultIdentity<IdentityUser>(options =>
+      //   {
+      //     // options are set here
+      //   })
+      // .AddRoles<IdentityRole>()
+      services.AddIdentity<IdentityUser, IdentityRole>()
+        .AddEntityFrameworkStores<MagicContext>()
+        .AddDefaultTokenProviders();
 
       // services.AddControllersWithViews();
       services.AddMvc();  // 等於 AddControllersWithViews() 加 AddRazorPages()

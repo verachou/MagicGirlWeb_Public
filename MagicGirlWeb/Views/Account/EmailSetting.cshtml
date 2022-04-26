@@ -109,7 +109,7 @@
 
 
 
-@section Scripts {
+@section Scripts{
 <!-- JS Grid Scripts Start-->
 <script src="~/theme_focus/js/lib/jsgrid/jsgrid.core.js"></script>
 <script src="~/theme_focus/js/lib/jsgrid/jsgrid.load-indicator.js"></script>
@@ -124,8 +124,6 @@
 <script src="~/theme_focus/js/lib/jsgrid/jsgrid-init.js"></script>
 <!-- JS Grid Scripts End-->
 
-@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-
 <script type="text/javascript">
   //點編輯按鈕時將同排資料放入Modal欄位中
   $('#buttonEdit').on('click', function () {
@@ -135,6 +133,9 @@
     $('#EditDescription').val(data[0]);
     $('#EditEmail').val(data[1]);
   });
-
 </script>
 }
+
+@* @{
+  await Html.RenderPartialAsync("_ValidationScriptsPartial");
+} *@

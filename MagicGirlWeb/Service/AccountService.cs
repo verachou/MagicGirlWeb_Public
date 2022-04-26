@@ -19,6 +19,11 @@ namespace MagicGirlWeb.Service
       _unitOfWork = new UnitOfWork(context);
     }
 
+    public AccountEmail GetEmailById(int id)
+    {
+      return _unitOfWork.AccountEmailRepository.GetById(id);
+    }
+
     public ICollection<AccountEmail> GetEmailByAccountId(string accountId)
     {
       return _unitOfWork.AccountEmailRepository.GetByAccountId(accountId);
@@ -34,7 +39,7 @@ namespace MagicGirlWeb.Service
       string email,
       string description)
     {
-      if (email == null || description==null)
+      if (email == null || description == null)
         return null;
 
       // 檢查是否已建檔

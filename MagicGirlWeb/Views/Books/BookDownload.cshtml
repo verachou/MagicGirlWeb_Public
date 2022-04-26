@@ -1,4 +1,4 @@
-@model IEnumerable<MagicGirlWeb.Models.BooksViewModels.BookDownloadView>
+@model MagicGirlWeb.Models.BooksViewModels.BookDownloadView
 
 @{
   ViewData["Title"] = "[低調] 線上小說轉檔";
@@ -20,66 +20,337 @@
           <div class="col-lg-8">
             <div class="card">
               <div class="card-body">
-                <table class="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>
-                        <a asp-action="BookDownload"
-                          asp-route-sortOrder="@ViewData["IdSortParm"]">@Html.DisplayNameFor(model
-                          =>
-                          model.Id)</a>
-                      </th>
-                      <th>
-                        @Html.DisplayNameFor(model => model.Title)
-                      </th>
-                      <th>
-                        <a asp-action="BookDownload"
-                          asp-route-sortOrder="@ViewData["PageSortParm"]">@Html.DisplayNameFor(model =>
-                          model.TotalPage)</a>
-                      </th>
-                      <th>
-                        <a asp-action="BookDownload"
-                          asp-route-sortOrder="@ViewData["DateSortParm"]">@Html.DisplayNameFor(model =>
-                          model.DownloadDate)</a>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @foreach (var item in Model)
-                    {
-                      <tr>
-                        <td>
-                          @Html.DisplayFor(modelItem => item.Id)
-                        </td>
-                        <td>
-                          @if (@item.SourceId != null)
-                          {
-                            <a asp-action="CloudFile" asp-route-sourceId="@item.SourceId"
-                          class="color-primary border_b_dotted">@Html.DisplayFor(modelItem =>
-                          item.Title)</a>
-                          }
-                          else
-                          {
-                            @Html.DisplayFor(modelItem => item.Title)
-                          }
+                <!-- Modal information -->
+                <div class="modal fade" id="ModalBDl" tabindex="-1" role="dialog" aria-labelledby="ModalBDlTitle"
+                  aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="ModalBDlTitle">選擇收件地址</h5>
+                      </div>
+                      <form asp-controller="Books" id="formSetting" asp-route-id="" enctype="multipart/form-data"
+                        method="post">
+                        <div class="modal-body">
+                          <div class="form-group emailSelectBox">
+                            <div class="row">
+                              <div class="col-lg-12 m-b-18">
+                                <input type="checkbox" class="largerCheckbox checkMiddle" name="clickAll" id="clickAll">
+                                <label for="clickAll" class="color-darkgrey">全選</label>
+                              </div>
+                              @for (var i = 0; i < Model.AccountEmails!.Count; i++)
+                              {
+                                <div class="col-sm-6">
+                                  <input asp-for="@Model.AccountEmails[i].IsChecked" class="largerCheckbox checkMiddle"
+                                  type="checkbox" id="checkEmail@(i)">
+                                  <label for="checkEmail@(i)">@Model.AccountEmails[i].Description</label>
+                                  <input type="hidden" asp-for="@Model.AccountEmails[i].EmailId">
+                                  <input type="hidden" asp-for="@Model.AccountEmails[i].Description">
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-light" data-dismiss="modal">取消</button>
+                          <button type="submit" class="btn btn-primary" form="formSetting" formaction="BookDownloadPost"
+                            id="btnSend">傳送</button>
+                        </div>
+                      </form>
 
-                        </td>
-                        <td>
-                          @Html.DisplayFor(modelItem => item.TotalPage)
-                        </td>
-                        <td>
-                          @Html.DisplayFor(modelItem => item.DownloadDate)
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
+                    </div>
+                  </div>
+                </div>
+                <!-- /# Modal information -->
+                <!-- BootStrap-table -->
+                <table id="dlTable"></table>
+                <!-- -->
               </div>
             </div>
-          </div> <!-- col-lg-8 -->
-        </div>
-      </section>
+          </div>
+        </div> <!-- col-lg-8 -->
     </div>
+    </section>
   </div>
 </div>
+</div>
 <!-- contain-wrap -->
+
+@section Css {
+<!-- bootstrap table -->
+<link href="~/theme_focus/css/lib/bootstrap-table/bootstrap-table.min.css" rel="stylesheet" />
+}
+
+@section Scripts {
+<!-- bootstrap table-->
+<script src="~/theme_focus/js/lib/bootstrap-table/bootstrap-table.min.js"></script>
+<script src="~/theme_focus/js/lib/bootstrap-table/bootstrap-table-fixed-columns.min.js"></script>
+
+<script>
+  //Bootstrap Table....................
+  var $table = $('#dlTable')
+  // 資料本體
+  // 序號 書名 連結 總頁數 最後下載時間
+  @* var sourceData = [
+      {
+      id: '1',
+      bookname: '《一起來玩超H的RPG吧！》',
+      link: 'https://www.google.com',
+      page: '71',
+      date: '2019/09/06 16:58:06'
+      }, {
+      id: '2',
+      bookname: '《全球高考》',
+      link: 'https://www.google.com',
+      page: '171',
+      date: '2020/12/09 14:36:00'
+      },
+      {
+      id: '3',
+      bookname: '《盜版文章害死人》',
+      link: 'https://www.google.com',
+      page: '18',
+      date: '2019/05/08 17:41:32'
+      },
+      {
+      id: '4',
+      bookname: '《農門辣妻：田園種包子》',
+      link: 'https://www.google.com',
+      page: '1376',
+      date: '2019/05/09 04:42:22'
+      },
+      {
+      id: '5',
+      bookname: '《(ABO)我是不是你最疼愛的alpha你為什麼不說話》',
+      link: 'https://www.google.com',
+      page: '15',
+      date: '2019/05/12 03:37:33'
+      },
+      {
+      id: '6',
+      bookname: '《金絲雀馴主手冊[娛樂圈]》',
+      link: 'https://www.google.com',
+      page: '105',
+      date: '2019/05/12 06:00:56'
+      },
+      {
+      id: '7',
+      bookname: '《你和人頭都歸我[電競]》',
+      link: 'https://www.google.com',
+      page: '145',
+      date: '2019/05/12 08:20:48'
+      }, {
+      id: '8',
+      bookname: '《時意》',
+      link: 'https://www.google.com',
+      page: '84',
+      date: '2019/05/13 15:17:04'
+      },
+      {
+      id: '9',
+      bookname: '宮斗不如做只貓',
+      link: 'https://www.google.com',
+      page: '96',
+      date: '2019/05/14 05:10:40'
+      },
+      {
+      id: '10',
+      bookname: '《我有一個秘密》',
+      link: 'https://www.google.com',
+      page: '161',
+      date: '2019/05/16 02:39:44'
+      },
+      {
+      id: '11',
+      bookname: '[現代修真] 諸神遊戲',
+      link: 'https://www.google.com',
+      page: '35',
+      date: '2019/05/17 13:28:24'
+      },
+      ]; *@
+
+  // 取得資料
+  var sourceData = @Html.Raw(Json.Serialize(@Model.BookDownloads));
+
+  function downloadFileAlert($id) {
+    alert('下載id=' + $id + '的TXT');
+  }
+
+  function buildTable($el) {
+    var cells = 6
+    var rows = sourceData.length
+    var i
+    var j
+    var row
+    var columns = []
+    var data = []
+
+    // 設定欄位資訊
+    columns.push({
+      field: 'id',
+      title: '序號',
+      sortable: true,
+      align: 'left',
+      visible: true,
+      width: '5',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+    columns.push({
+      field: 'bookname',
+      title: '書名',
+      sortable: true,
+      align: 'left',
+      width: '60',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+    columns.push({
+      field: 'page',
+      title: '總頁數',
+      sortable: true,
+      align: 'left',
+      width: '5',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+    columns.push({
+      field: 'date',
+      title: '最後下載時間',
+      sortable: true,
+      align: 'right',
+      width: '10',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+    columns.push({
+      field: 'action',
+      title: '操作',
+      sortable: true,
+      align: 'middle',
+      width: '20',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+
+    // 組合資料列
+    var regexp = /(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})/; //日期格式: YYYY-MM-DD hh:mm:ss
+    for (i = 0; i < rows; i++) {
+      var matchedResult = regexp.exec(sourceData[i].downloadDate);
+      sourceData[i].downloadDate = matchedResult[1].concat(' ', matchedResult[2]);
+      sourceData[i].link = "/Books/CloudFile/" + sourceData[i].sourceId;
+
+      row = {}
+      row['id'] = sourceData[i].id
+      row['bookname'] = '<a class="color-primary border_b_dotted" href="' + sourceData[i].link + '">' + sourceData[i].title + '</a>'
+      row['action'] = '<a href="#" data-toggle="modal" data-target="#ModalBDl" class="color-primary" id="buttonEdit" onclick="bindSourceId(\'' + sourceData[i].sourceId + '\')">寄信</a>'
+      row['action'] += '<a class="color-primary p-l-16" href="' + sourceData[i].link + '">下載</a>'
+      row['page'] = sourceData[i].totalPage
+      row['date'] = sourceData[i].downloadDate
+      data.push(row)
+    }
+
+    // 產生Table
+    $el.bootstrapTable('destroy').bootstrapTable({
+      height: $('#height').prop('checked') ? 400 : undefined,
+      columns: columns,
+      data: data,
+      classes: 'table table-striped table-hover',//Table樣式
+
+      //可於ToolBar上顯示的按鈕
+      toolbar: '.toolbar',
+      showColumns: true, //顯示/隱藏哪些欄位
+      showToggle: true, //名片式/table式切換
+      showPaginationSwitch: false, //分頁/不分頁切換
+      showRefresh: false, //重新整理
+      search: true, //查詢
+      showSearchButton: false, //是否顯示查詢放大鏡按鈕
+
+
+      //凍結欄位設定
+      fixedColumns: true,
+      fixedNumber: 0,//凍結左邊n個欄位
+      fixedRightNumber: 1,//凍結右邊n個欄位
+
+      //分頁設定
+      pagination: true, //是否要分頁
+      onPageChange: function (currentPage, pageSize) {
+        console.log("目前頁數:" + currentPage + ",一頁顯示:" + pageSize + "筆");
+      },
+      pageSize: 10, //一頁顯示幾筆
+      pageList: [10, 20, 50, 100], //一頁顯示幾筆的選項
+
+      formatRecordsPerPage: function (pageSize) {
+        return '&nbsp;&nbsp;每頁顯示' + pageSize + '筆';
+      },
+      formatShowingRows: function (fromIndex, toIndex, totalSize) {
+        //目前第幾頁
+        var currentPage = Math.ceil(fromIndex / this.pageSize);
+        //總共幾頁
+        var totalPageCount = Math.ceil(totalSize / this.pageSize);
+        return '第' + currentPage + '頁&nbsp;&nbsp;共' + totalPageCount + '頁';
+      }
+    })
+  }
+
+  $(function () {
+    buildTable($table)
+  })
+</script>
+
+<script type="text/javascript">
+  //點編輯按鈕時將同排資料放入Modal欄位中
+  function bindSourceId($sourceId) {
+    $('#formSetting').attr('asp-route-id', $sourceId);
+  }
+</script>
+
+<script type="text/javascript">
+  //全選清單
+  $("#clickAll").click(function () {
+    if ($("#clickAll").prop("checked")) {
+      $("input[name='checkEmail']").each(function () {
+        $(this).prop("checked", true);
+      });
+    } else {
+      $("input[name='checkEmail']").each(function () {
+        $(this).prop("checked", false);
+      });
+    }
+  });
+</script>
+}
