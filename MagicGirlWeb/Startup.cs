@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
-// using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -46,9 +45,9 @@ namespace MagicGirlWeb
         .AddEntityFrameworkStores<MagicContext>()
         .AddDefaultTokenProviders();
 
-      // services.AddControllersWithViews();
-      services.AddMvc();  // 等於 AddControllersWithViews() 加 AddRazorPages()
-
+      services.AddControllersWithViews();
+      // services.AddMvc();  // 等於 AddControllersWithViews() 加 AddRazorPages()
+      
       services.AddAuthentication()
         .AddGoogle(options =>
         {
@@ -103,7 +102,7 @@ namespace MagicGirlWeb
         endpoints.MapControllerRoute(
                   name: "default",
                   pattern: "{controller=Home}/{action=Index}/{id?}");
-        endpoints.MapRazorPages();
+        // endpoints.MapRazorPages();
       });
     }
   }

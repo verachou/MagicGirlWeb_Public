@@ -277,8 +277,14 @@
       row = {}
       row['id'] = sourceData[i].id
       row['bookname'] = '<a class="color-primary border_b_dotted" href="' + sourceData[i].link + '">' + sourceData[i].title + '</a>'
-      row['action'] = '<a href="#" data-toggle="modal" data-target="#ModalBDl" class="color-primary" id="buttonEdit" onclick="bindSourceId(\'' + sourceData[i].sourceId + '\')">寄信</a>'
-      row['action'] += '<a class="color-primary p-l-16" href="' + sourceData[i].link + '">下載</a>'
+      if (@Model.AccountEmails!.Count > 0) {
+        row['action'] = '<a href="#" data-toggle="modal" data-target="#ModalBDl" class="color-primary" id="buttonEdit" onclick="bindSourceId(\'' + sourceData[i].sourceId + '\')">寄信</a>'
+        row['action'] += '<a class="color-primary p-l-16" href="' + sourceData[i].link + '">下載</a>'
+      }
+      else{
+        row['action'] = '<a class="color-primary p-l-16" href="' + sourceData[i].link + '">下載</a>'
+      }
+      
       row['page'] = sourceData[i].totalPage
       row['date'] = sourceData[i].downloadDate
       data.push(row)

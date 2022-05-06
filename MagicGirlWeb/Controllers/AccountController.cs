@@ -47,7 +47,7 @@ namespace MagicGirlWeb
       await _signInManager.SignOutAsync();
       _logger.LogInformation("User logged out.");
 
-      return RedirectToLocal(returnUrl);
+      return RedirectToAction("Index", "Home");
     }
 
     [AllowAnonymous]
@@ -129,6 +129,7 @@ namespace MagicGirlWeb
     }
 
     // GET: Account/EmailSetting
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> EmailSetting()
     {
@@ -151,6 +152,7 @@ namespace MagicGirlWeb
 
 
     // POST
+    [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EmailSetting(EmailListView viewModel)
@@ -181,6 +183,7 @@ namespace MagicGirlWeb
 
     // GET: Account/EmailSetting/ADMIN
     // [HttpGet]
+    [Authorize(Policy = "RequireAdministratorRole")]
     public async Task<IActionResult> RoleSetting(RoleView viewModel)
     {
       if (viewModel.Roles == null)
@@ -214,6 +217,7 @@ namespace MagicGirlWeb
     // Post: Account/EmailSetting
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [Authorize(Policy = "RequireAdministratorRole")]
     public ActionResult RoleSettingSave(RoleView viewModel)
     {
       if (ModelState.IsValid && viewModel.Accounts != null)

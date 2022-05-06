@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Identity;
@@ -18,8 +19,7 @@ using MagicGirlWeb.Service;
 
 namespace MagicGirlWeb
 {
-  // [Authorize(Policy = "PowerUser")]
-  [AllowAnonymous]
+  [Authorize]
   public class BooksController : Controller
   {
     private readonly ILogger<BooksController> _logger;
@@ -58,141 +58,19 @@ namespace MagicGirlWeb
       _folderId = config["Authentication:DriveFolderId"];
     }
 
-    // GET: Books
-    public async Task<IActionResult> Index()
+    private ICollection<AccountEmail> GetEmailList()
     {
-      var magicContext = _context.Book.Include(b => b.Author);
-      return View(await magicContext.ToListAsync());
-    }
+      var isAuthorized = User.IsInRole("ADMIN") ||
+                         User.IsInRole("ADVANCE_USER");
+      var accountEmails = new List<FetchView.AccountEmail>();
 
-    // GET: Books/Details/5
-    public async Task<IActionResult> Details(int? id)
-    {
-      if (id == null)
+      if (!isAuthorized)
       {
-        return NotFound();
+        var accountId = _userManager.GetUserId(User);
+        return _accountService.GetEmailByAccountId(accountId);
       }
 
-      var book = await _context.Book
-          .Include(b => b.Author)
-          .FirstOrDefaultAsync(m => m.Id == id);
-      if (book == null)
-      {
-        return NotFound();
-      }
-
-      return View(book);
-    }
-
-    // GET: Books/Create
-    public IActionResult Create()
-    {
-      ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "Id");
-      return View();
-    }
-
-    // POST: Books/Create
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("AuthorId,TotalPage,Type,Status,Id,Name,CreateDate,ModifyDate,IsDelete")] Book book)
-    {
-      if (ModelState.IsValid)
-      {
-        _context.Add(book);
-        await _context.SaveChangesAsync();
-        return RedirectToAction(nameof(Index));
-      }
-      ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "Id", book.AuthorId);
-      return View(book);
-    }
-
-    // GET: Books/Edit/5
-    public async Task<IActionResult> Edit(int? id)
-    {
-      if (id == null)
-      {
-        return NotFound();
-      }
-
-      var book = await _context.Book.FindAsync(id);
-      if (book == null)
-      {
-        return NotFound();
-      }
-      ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "Id", book.AuthorId);
-      return View(book);
-    }
-
-    // POST: Books/Edit/5
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("AuthorId,TotalPage,Type,Status,Id,Name,CreateDate,ModifyDate,IsDelete")] Book book)
-    {
-      if (id != book.Id)
-      {
-        return NotFound();
-      }
-
-      if (ModelState.IsValid)
-      {
-        try
-        {
-          _context.Update(book);
-          await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-          if (!BookExists(book.Id))
-          {
-            return NotFound();
-          }
-          else
-          {
-            throw;
-          }
-        }
-        return RedirectToAction(nameof(Index));
-      }
-      ViewData["AuthorId"] = new SelectList(_context.Author, "Id", "Id", book.AuthorId);
-      return View(book);
-    }
-
-    // GET: Books/Delete/5
-    public async Task<IActionResult> Delete(int? id)
-    {
-      if (id == null)
-      {
-        return NotFound();
-      }
-
-      var book = await _context.Book
-          .Include(b => b.Author)
-          .FirstOrDefaultAsync(m => m.Id == id);
-
-      if (book == null)
-        return NotFound();
-
-      return View(book);
-    }
-
-    // POST: Books/Delete/5
-    [HttpPost, ActionName("Delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
-    {
-      var book = await _context.Book.FindAsync(id);
-      _context.Book.Remove(book);
-      await _context.SaveChangesAsync();
-      return RedirectToAction(nameof(Index));
-    }
-
-    private bool BookExists(int id)
-    {
-      return _context.Book.Any(e => e.Id == id);
+      return _accountService.GetEmailAll();
     }
 
     [HttpGet]
@@ -203,17 +81,21 @@ namespace MagicGirlWeb
         var accountId = _userManager.GetUserId(User);
         viewModel.AccountEmails = new List<FetchView.AccountEmail>();
 
-        var emails = _accountService.GetEmailAll();
-        emails.OrderBy(e => e.AccountId);
-        foreach (var email in emails)
+        // var emails = _accountService.GetEmailAll();
+        var emails = GetEmailList();
+        if (emails != null)
         {
-          var checkedEmail = new FetchView.AccountEmail();
-          checkedEmail.EmailId = email.Id;
-          checkedEmail.Description = email.Description;
-          if (email.AccountId == accountId)
-            checkedEmail.IsChecked = true;
+          emails.OrderBy(e => e.AccountId);
+          foreach (var email in emails)
+          {
+            var checkedEmail = new FetchView.AccountEmail();
+            checkedEmail.EmailId = email.Id;
+            checkedEmail.Description = email.Description;
+            if (email.AccountId == accountId)
+              checkedEmail.IsChecked = true;
 
-          viewModel.AccountEmails.Add(checkedEmail);
+            viewModel.AccountEmails.Add(checkedEmail);
+          }
         }
       }
 
@@ -471,17 +353,21 @@ namespace MagicGirlWeb
         var accountId = _userManager.GetUserId(User);
         viewModel.AccountEmails = new List<BookDownloadView.AccountEmail>();
 
-        var emails = _accountService.GetEmailAll();
-        emails.OrderBy(e => e.AccountId);
-        foreach (var email in emails)
+        // var emails = _accountService.GetEmailAll();
+        var emails = GetEmailList();
+        if (emails != null)
         {
-          var checkedEmail = new BookDownloadView.AccountEmail();
-          checkedEmail.EmailId = email.Id;
-          checkedEmail.Description = email.Description;
-          if (email.AccountId == accountId)
-            checkedEmail.IsChecked = true;
+          emails.OrderBy(e => e.AccountId);
+          foreach (var email in emails)
+          {
+            var checkedEmail = new BookDownloadView.AccountEmail();
+            checkedEmail.EmailId = email.Id;
+            checkedEmail.Description = email.Description;
+            if (email.AccountId == accountId)
+              checkedEmail.IsChecked = true;
 
-          viewModel.AccountEmails.Add(checkedEmail);
+            viewModel.AccountEmails.Add(checkedEmail);
+          }
         }
       }
       return View(viewModel);
@@ -597,17 +483,21 @@ namespace MagicGirlWeb
         var accountId = _userManager.GetUserId(User);
         viewModel.AccountEmails = new List<SmartEditView.AccountEmail>();
 
-        var emails = _accountService.GetEmailAll();
-        emails.OrderBy(e => e.AccountId);
-        foreach (var email in emails)
+        // var emails = _accountService.GetEmailAll();
+        var emails = GetEmailList();
+        if (emails != null)
         {
-          var checkedEmail = new SmartEditView.AccountEmail();
-          checkedEmail.EmailId = email.Id;
-          checkedEmail.Description = email.Description;
-          if (email.AccountId == accountId)
-            checkedEmail.IsChecked = true;
+          emails.OrderBy(e => e.AccountId);
+          foreach (var email in emails)
+          {
+            var checkedEmail = new SmartEditView.AccountEmail();
+            checkedEmail.EmailId = email.Id;
+            checkedEmail.Description = email.Description;
+            if (email.AccountId == accountId)
+              checkedEmail.IsChecked = true;
 
-          viewModel.AccountEmails.Add(checkedEmail);
+            viewModel.AccountEmails.Add(checkedEmail);
+          }
         }
       }
       return View(viewModel);
@@ -619,26 +509,24 @@ namespace MagicGirlWeb
       // -- 資料驗證 -- //
       if (!ModelState.IsValid)
         // return Error();
-        return View();
+        return RedirectToAction(nameof(SmartEdit), viewModel);
 
-      // -- 資料處理 -- //
-      string fileName = viewModel.TxtFile.FileName;
-      string filePath = Path.Combine(_fileDir, fileName);
+
+      // -- 資料處理 -- //    
+      var TxtFile = JsonSerializer.Deserialize<SmartEditView.FilepondFile>(viewModel.JsonFile);
+      if (TxtFile.data.Length == 0)
+        // return Error();
+        return RedirectToAction(nameof(SmartEdit), viewModel);
+
       // 微軟的encoding list, 因big5不在.Net Core內建支援的編碼內，需另外下載System.Text.Encoding.CodePages，並在使用前註冊
       // https://docs.microsoft.com/zh-tw/windows/win32/intl/code-page-identifiers?redirectedfrom=MSDN
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-      Encoding encode = Encoding.GetEncoding(viewModel.SelectedEncoding.Value);
+      Encoding encode = Encoding.GetEncoding(viewModel.SelectedEncoding);      
+      string text = encode.GetString(Convert.FromBase64String(TxtFile.data));
+      string fileName = TxtFile.name;     
 
       try
-      {
-        if (viewModel.TxtFile.Length == 0)
-          // return Error();
-          return View();
-
-        // 使用OpenReadStream的方式直接得到上傳檔案的Stream
-        StreamReader streamReader = new StreamReader(viewModel.TxtFile.OpenReadStream(), encode);
-        string text = streamReader.ReadToEnd();
-
+      {        
         if (viewModel.ToTW)
         {
           text = _crawlService.Format(text, FormatType.Traditional);
@@ -649,6 +537,7 @@ namespace MagicGirlWeb
           text = _crawlService.Format(text, FormatType.DoubleEOL);
 
         // 儲存檔案
+        string filePath = Path.Combine(_fileDir, fileName);
         await System.IO.File.WriteAllTextAsync(filePath, text);
 
 
@@ -685,11 +574,9 @@ namespace MagicGirlWeb
         _logger.LogError(ex.ToString());
       }
 
-      return View();
+      return RedirectToAction(nameof(SmartEdit), viewModel);
 
     }
-
-
 
   }
 }

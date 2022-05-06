@@ -29,19 +29,14 @@
                     <div class="row">
                       <div class="col-lg-12">
                         <!-- Filepond 限制檔案大小最大20mb -->
-                        <input type="file" accept="text/plain" class="filepond" data-max-file-size="20mb"
-                          data-val="true" asp-for="TxtFile">
-                        @* @Html.ValidationMessageFor(model => model.TxtFile, "", new { @class = "text-danger" }) *@
+                        @* <input type="file" accept="text/plain" class="filepond" data-max-file-size="20mb"
+                          data-val="true" asp-for="TxtFile"> *@
+                        <input type="file" class="filepond">
                       </div>
                       <div class="col-lg-12">
                         <div class="form-group">
                           <label>原文格式</label>
                           <select asp-for="SelectedEncoding" asp-items="Model.Encodings" class="form-control"></select>
-                          @* <select class="form-control">
-                            <option>簡體中文GB2312</option>
-                            <option>繁體中文BIG5</option>
-                            <option>UTF-8</option>
-                            </select> *@
                         </div>
                       </div>
                       <div class="col-lg-12">
@@ -65,10 +60,13 @@
                               id="SEdownload">
                             <label for="SEdownload">完成後下載檔案(需停留在此頁數分鐘)</label>
                           </div>
-                          <div class="check-container">
-                            <input class="largerCheckbox checkMiddle" type="checkbox" asp-for="IsEmail" id="SEmail">
-                            <label for="SEmail">完成後寄至信箱</label>
-                          </div>
+                          @if (Model.AccountEmails!.Count > 0)
+                          {
+                            <div class="check-container">
+                              <input class="largerCheckbox checkMiddle" type="checkbox" asp-for="IsEmail" id="SEmail">
+                              <label for="SEmail">完成後寄至信箱</label>
+                            </div>
+                          }
                         </div>
                         <div id="SEmailChecked-show">
                           <div class="emailSelectBox2">
@@ -121,31 +119,37 @@
 <script src="~/theme_focus/js/lib/filepond/filepond.js"></script>
 <script src="~/theme_focus/js/lib/filepond/filepond-plugin-file-validate-type.js"></script>
 <script src="~/theme_focus/js/lib/filepond/filepond-plugin-file-validate-size.js"></script>
+<script src="~/theme_focus/js/lib/filepond/filepond-plugin-file-encode.js"></script>
 <script>
   FilePond.registerPlugin(
     FilePondPluginFileValidateSize,
-    FilePondPluginFileValidateType
+    FilePondPluginFileValidateType,
+    FilePondPluginFileEncode
   );
 
   FilePond.create(
     document.querySelector('.filepond'),
     {
-      labelIdle: `將檔案拖曳到這 或 <span class="filepond--label-action btn btn-default btn-sm">選擇檔案</span>`,
+      labelIdle: '將檔案拖曳到這 或 <span class="filepond--label-action btn btn-default btn-sm">選擇檔案</span>',
       labelMaxFileSizeExceeded: '檔案太大啦!!!',
       labelMaxFileSize: '檔案上限是{filesize}',
-      acceptedFileTypes: ['text/plain'],
+      maxFileSize: '20MB',
+      maxFiles: 1,
+      required: true,
+      name: 'JsonFile',
     }
   );
+
 </script>
 <script type="text/javascript">
-  //SmartEdit 選擇寄送信箱才出現選項
-  $("#SEmail").click(function () {
-    if ($("#SEmail").prop("checked")) {
-      $('#SEmailChecked-show').show();
-    } else {
-      $('#SEmailChecked-show').hide();
-    }
-  });
+    //SmartEdit 選擇寄送信箱才出現選項
+    $("#SEmail").click(function () {
+      if ($("#SEmail").prop("checked")) {
+        $('#SEmailChecked-show').show();
+      } else {
+        $('#SEmailChecked-show').hide();
+      }
+    });
 
   //全選清單
   $("#clickAll").click(function () {

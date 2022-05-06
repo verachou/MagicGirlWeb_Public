@@ -143,23 +143,26 @@
                           </div>
                         </div>
                       </div>
-                      <div class="row">
-                        <div class="col-lg-12"><label>收件人</label></div>
-                        <div class="col-lg-12 m-b-18">
-                          <input type="checkbox" class="largerCheckbox checkMiddle" name="clickAll" id="clickAll">
-                          <label for="clickAll" class="color-darkgrey">全選</label>
-                        </div>
-                        @for (var i = 0; i < Model.AccountEmails!.Count; i++)
-                        {
-                          <div class="col-sm-6">
-                            <input asp-for="@Model.AccountEmails[i].IsChecked" class="largerCheckbox checkMiddle"
+                      @if (Model.AccountEmails!.Count > 0)
+                      {
+                        <div class="row">
+                          <div class="col-lg-12"><label>收件人</label></div>
+                          <div class="col-lg-12 m-b-18">
+                            <input type="checkbox" class="largerCheckbox checkMiddle" name="clickAll" id="clickAll">
+                            <label for="clickAll" class="color-darkgrey">全選</label>
+                          </div>
+                          @for (var i = 0; i < Model.AccountEmails!.Count; i++)
+                          {
+                            <div class="col-sm-6">
+                              <input asp-for="@Model.AccountEmails[i].IsChecked" class="largerCheckbox checkMiddle"
                             type="checkbox" id="checkEmail@(i)">
                               <label for="checkEmail@(i)">@Model.AccountEmails[i].Description</label>
-                            <input type="hidden" asp-for="@Model.AccountEmails[i].EmailId">
-                            <input type="hidden" asp-for="@Model.AccountEmails[i].Description">
-                          </div>
-                        }
-                      </div>
+                              <input type="hidden" asp-for="@Model.AccountEmails[i].EmailId">
+                              <input type="hidden" asp-for="@Model.AccountEmails[i].Description">
+                            </div>
+                          }
+                        </div>
+                      }
                       <div class="row">
                         <div class="col-lg-12">
                           <div class="form-group m-b-10">
@@ -205,8 +208,6 @@
                                 <span><i class="fa fa-info-circle color-darkgrey"></i></span>
                               </a> </label>
                             <div class="input-box input-group-flat position-relative">
-                              @* <input name="txtTargetGoogle" type="text" class="form-control name-input"
-                                placeholder="請輸入書名或作者" oninput="ToggleClearTarget();"> *@
                               <input id="txtTargetGoogle" type="text" class="form-control name-input"
                                 placeholder="請輸入書名或作者" oninput="ToggleClearTarget();">
                               <a href="javascript:;" id="iconClearTargetGoogle" class="clear-input position-absolute">

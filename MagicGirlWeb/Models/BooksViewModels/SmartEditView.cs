@@ -9,13 +9,11 @@ namespace MagicGirlWeb.Models.BooksViewModels
 {
   public class SmartEditView
   {
-    [Required(ErrorMessage = "Error: 請選取正確的檔案")]
-    // [AllowFileExtensions("txt", ErrorMessage = "Error: 僅接受txt檔")]
-    [FileSize(20*1024*1024, ErrorMessage = "Error: 超過檔案大小上限20MB")]
-    public IFormFile TxtFile { get; set; }
+    public string JsonFile { get; set; }
+
 
     [Required]
-    public SelectListItem SelectedEncoding { get; set; }
+    public string SelectedEncoding { get; set; }
     public IEnumerable<SelectListItem> Encodings { get; } = new List<SelectListItem>
     {
       new SelectListItem { Value = "gb2312", Text = "簡體中文GB2312" },
@@ -38,6 +36,15 @@ namespace MagicGirlWeb.Models.BooksViewModels
       public string Description { get; set; }
       public bool IsChecked { get; set; } = false;
 
+    }
+
+    public class FilepondFile
+    {
+      public string id { get; set; }
+      public string name { get; set; }
+      public string type { get; set; }
+      public int size { get; set; }
+      public string data { get; set; }
     }
 
   }

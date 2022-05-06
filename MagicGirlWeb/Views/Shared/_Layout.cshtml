@@ -1,5 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
 @inject SignInManager<IdentityUser> SignInManager
+@inject IAuthorizationService AuthorizationService
 
 <!DOCTYPE html>
 <html lang="en">
@@ -48,6 +50,9 @@
             <li class="label">鑽石會員專區</li>
             <li><a href="https://drive.google.com/drive/folders/1fD3suIhPcZqMbzE5pqC0A5fPCUmGcuLU"><i
                 class="ti-cloud-down"></i>精選存放區</a></li>
+          }
+          @if ((await AuthorizationService.AuthorizeAsync(User, "RequireAdministratorRole")).Succeeded)
+          {
             <li class="label">系統管理</li>
             <li><a asp-area="" asp-controller="Account" asp-action="RoleSetting"><i class="ti-user"></i>使用者權限管理</a></li>
           }
@@ -81,13 +86,13 @@
 
   @RenderBody()
 
-  <footer class="border-top footer text-muted">
+  <div class="content-wrap">
     <div class="col-lg-12">
       <footer class="border-top footer">
         &copy; 2022 - MagicGirlWeb<br>
       </footer>
     </div>
-  </footer>
+  </div>
 
   <!--**********************************
           Scripts
