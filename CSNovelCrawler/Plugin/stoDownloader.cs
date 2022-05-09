@@ -66,14 +66,14 @@ namespace CSNovelCrawler.Plugin
 
       ////取作者跟書名
       string htmlTitle = htmlRoot.DocumentNode.SelectSingleNode("//h1").InnerText;
-      r = new Regex(@"(?<Title>(.(?!【))+)[^\u4e00-\u9fa5a-zA-Z0-9]*作\s*者[^\u4e00-\u9fa5a-zA-Z0-9]*(?<Author>[\u0800-\u9fa5\x3130-\x318Fa-zA-Z0-9]+)");
+      r = new Regex(@"(?<Title>.*)作\s*者：(?<Author>.*)");
       m = r.Match(htmlTitle);
       if (m.Success)
       {
         TaskInfo.Author = m.Groups["Author"].Value.Trim();
         TaskInfo.Author = OpenCC.ConvertToTW(TaskInfo.Author);
         TaskInfo.Title = m.Groups["Title"].Value.Trim();
-        TaskInfo.Title = Regex.Replace(TaskInfo.Title, @"[/\|\\\?""\*:><\.]+", "");
+        TaskInfo.Title = new CommonTools().RemoveSpecialChar(TaskInfo.Title);
         TaskInfo.Title = OpenCC.ConvertToTW(TaskInfo.Title);
         _logger.LogDebug(LogMessage.Plugin.Author, TaskInfo.Author);
         _logger.LogDebug(LogMessage.Plugin.Title, TaskInfo.Title);

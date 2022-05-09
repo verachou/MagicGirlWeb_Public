@@ -64,9 +64,9 @@ namespace CSNovelCrawler.Plugin
 
       ////取作者跟書名
       TaskInfo.Title = htmlRoot.DocumentNode.SelectSingleNode("//span[@class='title']").InnerText.Trim();
-      TaskInfo.Title = Regex.Replace(TaskInfo.Title, @"[/\|\\\?""\*:><\.]+", "");
+      TaskInfo.Title = new CommonTools().RemoveSpecialChar(TaskInfo.Title);
 
-      TaskInfo.Author = htmlRoot.DocumentNode.SelectSingleNode("//*[@class=\"author\"]").InnerText.Trim();
+      TaskInfo.Author = htmlRoot.DocumentNode.SelectSingleNode("//*[@class=\"author\"]/a").InnerText.Trim();
       _logger.LogDebug(LogMessage.Plugin.Author, TaskInfo.Author);
       _logger.LogDebug(LogMessage.Plugin.Title, TaskInfo.Title);
 

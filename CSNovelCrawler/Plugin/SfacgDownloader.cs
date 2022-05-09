@@ -57,8 +57,8 @@ namespace CSNovelCrawler.Plugin
       ////取作者跟書名
       TaskInfo.Title =
          introductionHtml.DocumentNode.SelectSingleNode("//*[@class=\"title\"]/span").InnerText;
-      TaskInfo.Title = Regex.Replace(TaskInfo.Title, @"[/\|\\\?""\*:><\.]+", "");
-      TaskInfo.Title = "《" + OpenCC.ConvertToTW(TaskInfo.Title) + "》";
+      TaskInfo.Title = new CommonTools().RemoveSpecialChar(TaskInfo.Title);
+      TaskInfo.Title = OpenCC.ConvertToTW(TaskInfo.Title);
       TaskInfo.Author =
           introductionHtml.DocumentNode.SelectSingleNode(
               "//*[@class=\"author-name\"]/span").InnerText;

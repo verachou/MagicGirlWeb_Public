@@ -62,8 +62,8 @@ namespace CSNovelCrawler.Plugin
       TaskInfo.Title =
          htmlRoot.DocumentNode.SelectSingleNode("/html/body/div[3]/div/div[2]/div[1]/h3/span")
                   .InnerText;
-      TaskInfo.Title = Regex.Replace(TaskInfo.Title, @"[/\|\\\?""\*:><\.]+", "");
-      TaskInfo.Title = "《" + OpenCC.ConvertToTW(TaskInfo.Title) + "》";
+      TaskInfo.Title = new CommonTools().RemoveSpecialChar(TaskInfo.Title);
+      TaskInfo.Title = OpenCC.ConvertToTW(TaskInfo.Title);
       TaskInfo.Author =
           htmlRoot.DocumentNode.SelectSingleNode("/html/body/div[3]/div/div[2]/div[1]/p[1]/span").InnerText;
 

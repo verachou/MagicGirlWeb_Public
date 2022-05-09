@@ -12,7 +12,7 @@ namespace CSNovelCrawler.Plugin
   {
     public HjwzwPlugin(ILoggerFactory loggerFactory) : base(loggerFactory)
     {
-      pattern = @"^http(s*):\/\/\w*\.*biqudu.com\/(?<TID>\d+\D+\d+)\/";
+      pattern = @"^http(s*):\/\/tw\.*hjwzw.com\/Book(\/Chapter)*(\/Read)*\/(?<TID>\d+)";
       PluginName = System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.Name.Replace("Plugin", "".ToLower());
     }
 

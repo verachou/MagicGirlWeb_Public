@@ -32,6 +32,7 @@ namespace MagicGirlWeb
     private readonly IFileService _fileService;
     private readonly NotificationService _notificationService;
     private readonly string _fileDir;
+    private readonly string _fileNameFormat;
     private readonly string _folderId;
 
     public BooksController(
@@ -50,11 +51,12 @@ namespace MagicGirlWeb
       _crawlService = new CrawlService(loggerFactory, config);
       _fileService = new FileService(loggerFactory, config);
       _notificationService = new NotificationService(loggerFactory, config);
-      _fileDir = config["WebSaveFolder"];
+      _fileDir = config["FileSetting:WebSaveFolder"];
       if (!Directory.Exists(_fileDir))
       {
         Directory.CreateDirectory(_fileDir);
       }
+      _fileNameFormat = config["FileSetting:FileNameFormat"];
       _folderId = config["Authentication:DriveFolderId"];
     }
 
@@ -111,9 +113,18 @@ namespace MagicGirlWeb
       if (ModelState.IsValid)
       {
         Book book = _crawlService.Analysis(viewModel.Url);
-        viewModel.Title = book.Name;
-        viewModel.PageFrom = 1;
-        viewModel.PageTo = book.TotalPage;
+        if (book == null)
+        {
+          viewModel.Title = "無法解析";
+          viewModel.PageFrom = 1;
+          viewModel.PageTo = 1;
+        }
+        else
+        {
+          viewModel.Title = book.Name;
+          viewModel.PageFrom = 1;
+          viewModel.PageTo = book.TotalPage;
+        }
       }
 
       return RedirectToAction(nameof(Fetch), viewModel);
@@ -125,7 +136,10 @@ namespace MagicGirlWeb
       if (!ModelState.IsValid)
         return null;
 
-      string fileName = String.Format("{0}.txt", viewModel.Title);
+      var title = viewModel.Title;
+      var pageFrom = viewModel.PageFrom;
+      var pageTo = viewModel.PageTo;
+      string fileName = String.Format(_fileNameFormat, title, pageFrom, pageTo);
       string filePath = Path.Combine(_fileDir, fileName);
       Book currBook = _crawlService.Analysis(viewModel.Url);
       Book saveBook = _bookService.GetBookBySourceId(currBook.BookWebsites.FirstOrDefault().SourceId);
@@ -392,7 +406,10 @@ namespace MagicGirlWeb
         return RedirectToAction(nameof(BookDownload));
       }
 
-      string fileName = String.Format("{0}.txt", book.Name);
+      var title = book.Name;
+      var pageFrom = book.BookWebsites.FirstOrDefault().LastPageFrom;
+      var pageTo = book.BookWebsites.FirstOrDefault().LastPageTo;
+      string fileName = String.Format(_fileNameFormat, title, pageFrom, pageTo);
       string filePath = Path.Combine(_fileDir, fileName);
       string fileId = book.BookWebsites.FirstOrDefault().FileId;
       bool isSuccess = _fileService.Download(
@@ -456,7 +473,10 @@ namespace MagicGirlWeb
         return RedirectToAction(nameof(BookDownload));
       }
 
-      string fileName = String.Format("{0}.txt", book.Name);
+      var title = book.Name;
+      var pageFrom = book.BookWebsites.FirstOrDefault().LastPageFrom;
+      var pageTo = book.BookWebsites.FirstOrDefault().LastPageTo;
+      string fileName = String.Format(_fileNameFormat, title, pageFrom, pageTo);
       string filePath = Path.Combine(_fileDir, fileName);
       string fileId = book.BookWebsites.FirstOrDefault().FileId;
       bool isSuccess = _fileService.Download(
@@ -521,12 +541,12 @@ namespace MagicGirlWeb
       // 微軟的encoding list, 因big5不在.Net Core內建支援的編碼內，需另外下載System.Text.Encoding.CodePages，並在使用前註冊
       // https://docs.microsoft.com/zh-tw/windows/win32/intl/code-page-identifiers?redirectedfrom=MSDN
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-      Encoding encode = Encoding.GetEncoding(viewModel.SelectedEncoding);      
+      Encoding encode = Encoding.GetEncoding(viewModel.SelectedEncoding);
       string text = encode.GetString(Convert.FromBase64String(TxtFile.data));
-      string fileName = TxtFile.name;     
+      string fileName = TxtFile.name;
 
       try
-      {        
+      {
         if (viewModel.ToTW)
         {
           text = _crawlService.Format(text, FormatType.Traditional);

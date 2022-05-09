@@ -27,7 +27,7 @@ namespace CSNovelCrawler.Plugin
     public HtmlDocument GetHtmlDocument(string url)
     {
       CurrentParameter.Url = url;
-      return Network.GetHtmlDocument(Network.GetHtmlSource(CurrentParameter, Encoding.UTF8));
+      return Network.GetHtmlDocument(Network.GetHtmlSource(CurrentParameter, Encoding.GetEncoding("gb2312")));
     }
 
     /// <summary>
@@ -58,13 +58,14 @@ namespace CSNovelCrawler.Plugin
       if (htmlNode.Count > 0)
       {
         TaskInfo.Title = htmlNode[0].SelectSingleNode("h1").InnerText;
-        TaskInfo.Title = "《" + OpenCC.ConvertToTW(TaskInfo.Title) + "》";
-        TaskInfo.Title = Regex.Replace(TaskInfo.Title, @"[/\|\\\?""\*:><\.]+", "");
+        TaskInfo.Title = OpenCC.ConvertToTW(TaskInfo.Title);
+        TaskInfo.Title = new CommonTools().RemoveSpecialChar(TaskInfo.Title);
         r = new Regex(@"者：(?<Author>\S+)");
         m = r.Match(htmlNode[0].SelectSingleNode("p").InnerText);
         if (m.Success)
         {
           TaskInfo.Author = m.Groups["Author"].Value.Trim();
+          TaskInfo.Author = OpenCC.ConvertToTW(TaskInfo.Author);
         }
 
       }
@@ -108,7 +109,7 @@ namespace CSNovelCrawler.Plugin
     {
       HtmlDocument htmlRoot = GetHtmlDocument(TaskInfo.Url);
       Regex r = new Regex(@"<a href=\S\/\d+_\d+\/(?<SectionName>\d+)\.html\S>");
-      MatchCollection matchs = r.Matches(htmlRoot.DocumentNode.SelectSingleNode("//*[@id=\"list\"]/dl").InnerHtml);
+      MatchCollection matchs = r.Matches(htmlRoot.DocumentNode.SelectSingleNode("//*[@class='listmain']").InnerHtml);
       foreach (Match m in matchs)
       {
         int temp = CommonTools.TryParse(m.Groups["SectionName"].Value, 0);

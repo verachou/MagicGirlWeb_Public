@@ -56,8 +56,8 @@ namespace CSNovelCrawler.Plugin
       {
         TaskInfo.Author = m.Groups["Author"].Value.Trim();
         TaskInfo.Title = m.Groups["Title"].Value.Trim();
-        TaskInfo.Title = Regex.Replace(TaskInfo.Title, @"[/\|\\\?""\*:><\.]+", "");
-        TaskInfo.Title = "《" + TaskInfo.Title + "》";
+        TaskInfo.Title = new CommonTools().RemoveSpecialChar(TaskInfo.Title);
+        TaskInfo.Title = TaskInfo.Title;
         _logger.LogDebug(LogMessage.Plugin.Author, TaskInfo.Author);
         _logger.LogDebug(LogMessage.Plugin.Title, TaskInfo.Title);
       }

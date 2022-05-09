@@ -6,7 +6,7 @@ using CSNovelCrawler.Interface;
 
 namespace CSNovelCrawler.Plugin
 {
-  [PluginInformation("quanBenDownloader", "quanBen插件", "JeanLin", "1.0.2.0", "quanBen下載插件", "http://big5.quanben5.com")]
+  [PluginInformation("quanBenDownloader", "quanBen插件", "JeanLin", "1.0.2.0", "quanBen下載插件", "http://big5.quanben5.io")]
   public class qbenPlugin : AbstractPlugin
   {
     public qbenPlugin(ILoggerFactory loggerFactory) : base(loggerFactory)
