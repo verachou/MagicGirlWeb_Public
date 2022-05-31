@@ -15,43 +15,11 @@ namespace MagicGirlWeb.Models
     public static void Initialize(
       MagicContext context, 
       UserManager<IdentityUser> userManager,
-      RoleManager<IdentityRole> roleManager
-
-
-      )
+      RoleManager<IdentityRole> roleManager,
+      bool isDevelopment = true
+    )
     {
       //context.Database.EnsureCreated();
-
-      // Look for any students.
-      if (context.Book.Any())
-      {
-        return;   // DB has been seeded
-      }
-
-      var accounts = new IdentityUser[]
-      {
-      // new IdentityUser { UserName = "Carl",   Provider = "Google", Roles = new List<Role>() },
-      // new IdentityUser { UserName = "Gytis",   Provider = "Google", Roles = new List<Role>() },
-      // new IdentityUser { UserName = "Yan",     Provider = "Google", Roles = new List<Role>() },
-      // new IdentityUser { UserName = "Peggy",   Provider = "Google", Roles = new List<Role>() },
-      // new IdentityUser { UserName = "Laura",   Provider = "Google", Roles = new List<Role>() },
-      // new IdentityUser { UserName = "Nino",   Provider = "Google", Roles = new List<Role>() }
-        new IdentityUser("Carl"),
-        new IdentityUser("Gytis"),
-        new IdentityUser("Yan"),
-        new IdentityUser("Peggy"),
-        new IdentityUser( "Laura"),
-        new IdentityUser( "Nino")
-      };
-
-      foreach (IdentityUser user in accounts)
-      {
-        // context.Account.Add(a);
-        // Task<IdentityResult> createTask = userManager.CreateAsync(user, "Temp_123");
-        // createTask.Wait();
-        var createTask = userManager.CreateAsync(user);
-        createTask.Wait();
-      }
 
       var roles = new IdentityRole[]
       {
@@ -67,9 +35,32 @@ namespace MagicGirlWeb.Models
         var createTask = roleManager.CreateAsync(role);
         createTask.Wait();
       }
+
+      if(isDevelopment)
+      {
+
+      // Look for any students.
+      if (context.Book.Any())
+      {
+        return;   // DB has been seeded
+      }
+
+      var accounts = new IdentityUser[]
+      {
+        new IdentityUser("Carl"),
+        new IdentityUser("Gytis"),
+        new IdentityUser("Yan"),
+        new IdentityUser("Peggy"),
+        new IdentityUser( "Laura"),
+        new IdentityUser( "Nino")
+      };
+
+      foreach (IdentityUser user in accounts)
+      {
+        var createTask = userManager.CreateAsync(user);
+        createTask.Wait();
+      }    
      
-
-
       var accountEmails = new AccountEmail[]
       {
         new AccountEmail { Email = "Carl@test.com",  Description="Carl的信箱", AccountId = accounts.Single( s => s.UserName == "Carl").Id},
@@ -101,8 +92,6 @@ namespace MagicGirlWeb.Models
         context.Author.Add(a);
       }
       context.SaveChanges();
-
-
 
       var books = new Book[]
       {
@@ -253,6 +242,7 @@ namespace MagicGirlWeb.Models
       // AddOrUpdateFunction(context, "ADMIN", "VIEW_DOWNLOAD_RECORD");
       // AddOrUpdateFunction(context, "ADMIN", "EMAIL_SETTING");
       // AddOrUpdateFunction(context, "ADMIN", "VIP_FIXED_BOOK");
+      }
 
     }
 

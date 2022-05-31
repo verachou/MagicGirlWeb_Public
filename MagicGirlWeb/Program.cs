@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.AzureAppServices;
+using NLog.Web;
 using MagicGirlWeb.Data;
 using MagicGirlWeb.Models;
 
@@ -18,10 +20,8 @@ namespace MagicGirlWeb
     public static void Main(string[] args)
     {
       // CreateHostBuilder(args).Build().Run();
-      var host = CreateHostBuilder(args).Build();
-
+      var host = CreateHostBuilder(args).Build();           
       CreateDbIfNotExists(host);
-
       host.Run();
     }
 
@@ -30,12 +30,13 @@ namespace MagicGirlWeb
       using (var scope = host.Services.CreateScope())
       {
         var services = scope.ServiceProvider;
+        var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == Environments.Development;
         try
         {
           var context = services.GetRequiredService<MagicContext>();
           var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
           var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-          DbInitializer.Initialize(context, userManager, roleManager);
+          DbInitializer.Initialize(context, userManager, roleManager, isDevelopment);
         }
         catch (Exception ex)
         {
@@ -47,9 +48,16 @@ namespace MagicGirlWeb
 
     public static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
+            .ConfigureLogging(logging => 
+            {
+              logging.ClearProviders();
+              logging.AddConsole();
+              logging.AddEventLog();
+              logging.AddAzureWebAppDiagnostics();
+            })            
             .ConfigureWebHostDefaults(webBuilder =>
             {
               webBuilder.UseStartup<Startup>();
-            });
+            }); 
   }
 }
