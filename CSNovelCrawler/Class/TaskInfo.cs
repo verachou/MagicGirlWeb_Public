@@ -24,7 +24,7 @@ namespace CSNovelCrawler.Class
       Progress = 0;
       TotalSection = 0;
       TaskId = Guid.NewGuid();
-      Subscribe = false;      
+      Subscribe = false;
     }
 
     /// <summary>
@@ -67,8 +67,10 @@ namespace CSNovelCrawler.Class
     /// 總頁數
     /// </summary>
     public int TotalPage { get; set; }
-
-
+    /// <summary>
+    /// 總下載頁數
+    /// </summary>
+    public int TotalDownloadPage { get; set; }
 
     /// <summary>
     /// 文章ID
@@ -178,9 +180,11 @@ namespace CSNovelCrawler.Class
     public double GetProgress()
     {
       Progress = 0;
-      if (TotalSection != 0)
+      if (TotalSection != 0 && TotalDownloadPage != 0)
       {
-        Progress = CurrentSection / (double)TotalSection;
+        // Progress = CurrentSection / (double)TotalSection;
+        Progress = Math.Round(1.00 - (double)(EndSection - CurrentSection) / TotalDownloadPage, 2);
+
         if (Progress < 0) Progress = 0.00;
         else if (Progress > 1.00) Progress = 1.00;
       }

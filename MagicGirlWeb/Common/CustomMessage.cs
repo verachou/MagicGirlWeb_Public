@@ -4,6 +4,7 @@ namespace MagicGirlWeb
   {
     public const string ObjectIsNull = "Object is null: {0}";
     public const string InsertFail = "User: {0} insert {1} failed.";
+    public const string ModelIsInvalid = "Input model is invalid";
 
   }
 }

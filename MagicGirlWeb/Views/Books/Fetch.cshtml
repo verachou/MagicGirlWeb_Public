@@ -116,7 +116,7 @@
                               new { name="txtTargetUrl", @class = "form-control name-input",
                               placeholder="http://example.com/...", type = "url", oninput="ToggleClearTarget();" })
                               <a href="javascript:;" id="iconClearTargetUrl" class="clear-input position-absolute">
-                                <img src="./theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
+                                <img src="~/theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
                               </a>
                             </div>
                           </div>
@@ -172,11 +172,12 @@
                                 class="form-control name-input" placeholder="a01@example.com"
                                 oninput="ToggleClearTarget();">
                               <a href="javascript:;" id="iconClearTargetEmail" class="clear-input position-absolute">
-                                <img src="./theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
+                                <img src="~/theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
                               </a>
                             </div>
                           </div>
                         </div>
+                        <input asp-for="HubConnId" type="hidden">
                         <input asp-for="IsDownload" type="checkbox" id="checkDownload" hidden>
                         <div class="col-lg-4 order-3 order-lg-2">
                           <input type="submit" formaction="FetchPost" class="btn btn-default btn-block" value="下載 TXT"
@@ -189,6 +190,14 @@
                         <!-- column -->
                       </div>
                       <!-- row -->
+                      @* <div class="row">
+                        <div id="ProgressPct">@Model.ProgressPct</div>
+                        <div class="progress m-t-20">
+                          <div class="progress-bar bg-success" style="width: 75%; height:15px;" role="progressbar">
+                            @Model.ProgressPct
+                          </div>
+                        </div>
+                      </div> *@
                     </form>
                   </div>
                 </div>
@@ -211,7 +220,7 @@
                               <input id="txtTargetGoogle" type="text" class="form-control name-input"
                                 placeholder="請輸入書名或作者" oninput="ToggleClearTarget();">
                               <a href="javascript:;" id="iconClearTargetGoogle" class="clear-input position-absolute">
-                                <img src="./theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
+                                <img src="~/theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
                               </a>
                             </div>
                           </div>
@@ -249,11 +258,64 @@
 
 
 @section Scripts {
+@* 使用signalR顯示下載進度 *@
+<script src="~/js/signalr/dist/browser/signalr.js"></script>
 <script type="text/javascript">
-  //輸入框有值時出現清除按鈕
-  $(function () {
-    ToggleClearTarget();
+  Object.defineProperty(WebSocket, 'OPEN', { value: 1, });
+  // 建立SignalR連接
+  var connection = new signalR.HubConnectionBuilder().withUrl("/progressHub").build();
+
+  // 傳送訊息事件
+  connection.on("UpdProgress", function (message) {
+    console.log(message);
+    $('#ProgressPct').text(message);
+    $('.progress-bar').css("width", message / 100)
   });
+
+  console.log(connection.state);
+  connection.on("SetHubConnId", function (id) {
+    console.log('HubConnId: ' + id);
+    $('#HubConnId').val(id);
+  });
+
+
+
+  // 連接事件
+  @* connection.start().then(function () {
+      console.log(connection.state);
+      connection.on("SetHubConnId", function (id) {
+      console.log('HubConnId: '+ id);
+      $('#HubConnId').val(id);
+      });
+      }).catch(function (err) {
+      return console.error(err.toString());
+      }); *@
+
+    connection.start().catch(function (err) {
+      return console.error(err.toString());
+    });
+
+
+
+
+
+
+  //與Server建立連線
+  @* connection.start().then(function () {
+      //呼叫Hub中的SendMessage方法，並傳入參數（參數數量要相等，不然會報錯）
+      connection.invoke("SendMessage", 'hi', 'ATai').catch(function (err) {
+      return console.error(err.toString());
+      });
+      }).catch(function (err) {
+      return console.error(err.toString());
+      }); *@
+</script>
+
+<script type="text/javascript">
+    //輸入框有值時出現清除按鈕
+    $(function () {
+      ToggleClearTarget();
+    });
 
   function ToggleClearTarget() {
     if ($('#txtTargetUrl').val() === '') {
@@ -325,6 +387,7 @@
     var url = "https://www.google.com/search?&q=" + encodeURIComponent(searchNovel) + encodeURI(strSearch);
     window.open(url);
   };
+
 </script>
 
 }

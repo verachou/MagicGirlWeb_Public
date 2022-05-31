@@ -19,6 +19,7 @@ namespace MagicGirlWeb.Service
       _unitOfWork = new UnitOfWork(context);
     }
 
+
     public AccountEmail GetEmailById(int id)
     {
       return _unitOfWork.AccountEmailRepository.GetById(id);

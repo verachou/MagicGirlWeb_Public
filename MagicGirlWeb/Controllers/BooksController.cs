@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,7 @@ using MagicGirlWeb.Data;
 using MagicGirlWeb.Models;
 using MagicGirlWeb.Models.BooksViewModels;
 using MagicGirlWeb.Service;
+using MagicGirlWeb.Hubs;
 
 namespace MagicGirlWeb
 {
@@ -24,6 +26,7 @@ namespace MagicGirlWeb
   {
     private readonly ILogger<BooksController> _logger;
     private readonly IConfiguration _config;
+    private readonly IHubContext<ProgressHub> _progressHubContext;
     private readonly MagicContext _context;
     private readonly UserManager<IdentityUser> _userManager;
     private readonly IAccountService _accountService;
@@ -39,13 +42,16 @@ namespace MagicGirlWeb
         ILogger<BooksController> logger,
         ILoggerFactory loggerFactory,
         IConfiguration config,
+        IHubContext<ProgressHub> hubContext,
         MagicContext context,
         UserManager<IdentityUser> userManager)
     {
       _logger = logger;
       _config = config;
+      _progressHubContext = hubContext;
       _context = context;
       _userManager = userManager;
+
       _accountService = new AccountService(loggerFactory, context);
       _bookService = new BookService(loggerFactory, context);
       _crawlService = new CrawlService(loggerFactory, config);
@@ -60,6 +66,10 @@ namespace MagicGirlWeb
       _folderId = config["Authentication:DriveFolderId"];
     }
 
+    /// <summary>
+    /// 根據使用者的角色取得他可寄出的Email
+    /// </summary>
+    /// <returns>Email list</returns>
     private ICollection<AccountEmail> GetEmailList()
     {
       var isAuthorized = User.IsInRole("ADMIN") ||
@@ -83,7 +93,6 @@ namespace MagicGirlWeb
         var accountId = _userManager.GetUserId(User);
         viewModel.AccountEmails = new List<FetchView.AccountEmail>();
 
-        // var emails = _accountService.GetEmailAll();
         var emails = GetEmailList();
         if (emails != null)
         {
@@ -107,11 +116,17 @@ namespace MagicGirlWeb
       return View(viewModel);
     }
 
+    /// <summary>
+    /// 根據使用者輸入的網址取得小說相關資訊
+    /// </summary>
+    /// <param name="viewModel"></param>
+    /// <returns></returns>
     [HttpPost]
     public ActionResult FetchAnalysis(FetchView viewModel)
     {
       if (ModelState.IsValid)
       {
+        viewModel.ProgressPct = 0;
         Book book = _crawlService.Analysis(viewModel.Url);
         if (book == null)
         {
@@ -130,12 +145,22 @@ namespace MagicGirlWeb
       return RedirectToAction(nameof(Fetch), viewModel);
     }
 
+    /// <summary>
+    /// 根據Url下載小說，並進行本地下載或發送至指定信箱
+    /// </summary>
+    /// <param name="viewModel"></param>
+    /// <returns></returns>
     [HttpPost]
     public ActionResult FetchPost(FetchView viewModel)
     {
       if (!ModelState.IsValid)
-        return null;
+      {
+        _logger.LogInformation(CustomMessage.ModelIsInvalid);
+        TempData["message"] = "資料錯誤，請重新輸入。";
+        return RedirectToAction(nameof(Fetch), viewModel);
+      }
 
+      viewModel.ProgressPct = 0;
       var title = viewModel.Title;
       var pageFrom = viewModel.PageFrom;
       var pageTo = viewModel.PageTo;
@@ -174,10 +199,18 @@ namespace MagicGirlWeb
           try
           {
             // 下載檔案
-            downloadBook = CrawlBook(viewModel, filePath);
+            downloadBook = CrawlBook(viewModel.Url,
+              viewModel.PageFrom,
+              viewModel.PageTo,
+              filePath,
+              viewModel.HubConnId);
 
             if (downloadBook == null)
-              return null;
+            {
+              _logger.LogError(CustomMessage.ObjectIsNull, downloadBook);
+              TempData["message"] = "下載失敗，請稍後再試。";
+              return RedirectToAction(nameof(Fetch), viewModel);
+            }
 
             // 更新資料庫
             BookWebsite bw = downloadBook.BookWebsites.FirstOrDefault();
@@ -195,6 +228,8 @@ namespace MagicGirlWeb
             // 檔案上傳 & 更新FileId
             UploadCloud(filePath, Constant.MIME_TEXT_UTF8, bw.SourceId);
 
+            // 更新下載進度
+            viewModel.ProgressPct = (int)(100 * (bw.LastPageTo - bw.LastPageFrom) / (viewModel.PageTo - viewModel.PageFrom));
           }
           catch (Exception ex)
           {
@@ -205,10 +240,18 @@ namespace MagicGirlWeb
           try
           {
             // 下載檔案
-            downloadBook = CrawlBook(viewModel, filePath);
+            downloadBook = CrawlBook(viewModel.Url,
+              viewModel.PageFrom,
+              viewModel.PageTo,
+              filePath,
+              viewModel.HubConnId);
 
             if (downloadBook == null)
-              return null;
+            {
+              _logger.LogError(CustomMessage.ObjectIsNull, downloadBook);
+              TempData["message"] = "下載失敗，請稍後再試。";
+              return RedirectToAction(nameof(Fetch), viewModel);
+            }
 
             // 更新資料庫
             BookWebsite bw = downloadBook.BookWebsites.FirstOrDefault();
@@ -221,6 +264,9 @@ namespace MagicGirlWeb
 
             // 檔案上傳 & 更新FileId
             UploadCloud(filePath, Constant.MIME_TEXT_UTF8, bw.SourceId);
+
+            // 更新下載進度
+            viewModel.ProgressPct = (int)(100 * (bw.LastPageTo - bw.LastPageFrom) / (viewModel.PageTo - viewModel.PageFrom));
           }
           catch (Exception ex)
           {
@@ -239,10 +285,18 @@ namespace MagicGirlWeb
             if (!isSuccess)
             {
               // 下載檔案
-              downloadBook = CrawlBook(viewModel, filePath);
+              downloadBook = CrawlBook(viewModel.Url,
+                viewModel.PageFrom,
+                viewModel.PageTo,
+                filePath,
+                viewModel.HubConnId);
 
               if (downloadBook == null)
-                return null;
+              {
+                _logger.LogError(CustomMessage.ObjectIsNull, downloadBook);
+                TempData["message"] = "下載失敗，請稍後再試。";
+                return RedirectToAction(nameof(Fetch), viewModel);
+              }
 
               // 更新資料庫
               bw = downloadBook.BookWebsites.FirstOrDefault();
@@ -255,6 +309,9 @@ namespace MagicGirlWeb
 
               // 檔案上傳 & 更新FileId
               UploadCloud(filePath, Constant.MIME_TEXT_UTF8, bw.SourceId);
+
+              // 更新下載進度
+              viewModel.ProgressPct = (int)(100 * (bw.LastPageTo - bw.LastPageFrom) / (viewModel.PageTo - viewModel.PageFrom));
             }
           }
           catch (Exception ex)
@@ -264,7 +321,8 @@ namespace MagicGirlWeb
           break;
         default:
           _logger.LogError("BookStatus is out of definition. BookStatus: {0}", status);
-          return null;
+          TempData["message"] = "下載失敗，請稍後再試。";
+          return RedirectToAction(nameof(Fetch), viewModel);
       }
 
       if (viewModel.IsDownload)
@@ -313,13 +371,48 @@ namespace MagicGirlWeb
       return RedirectToAction(nameof(Fetch), viewModel);
     }
 
-    private Book CrawlBook(FetchView viewModel, string filePath)
+
+
+    /// <summary>
+    /// 下載小說至指定的路徑
+    /// </summary>
+    /// <param name="url">小說網址</param>
+    /// <param name="pageFrom">下載起始頁數</param>
+    /// <param name="pageTo">下載終止頁數</param>
+    /// <param name="filePath">下載檔案的路徑</param>
+    /// <param name="hubConnId">SignalR hub connection id，將下載進度(%)透過Hub提供給指定對象</param>
+    /// <returns></returns>
+    private Book CrawlBook(
+      string url,
+      int pageFrom,
+      int pageTo,
+      string filePath,
+      string? hubConnId)
     {
-      Book book = _crawlService.Download(
-        viewModel.Url,
-        viewModel.PageFrom,
-        viewModel.PageTo,
-        filePath);
+      Book book;
+
+      if (hubConnId != null)
+      {
+        var progress = new Progress<int>(percent =>
+        {
+          // percent有傳出來，但沒有成功send到前端
+          _progressHubContext.Clients.Client(hubConnId).SendAsync("UpdProgress", percent);
+        });
+
+        book = _crawlService.Download(
+          url,
+          pageFrom,
+          pageTo,
+          filePath,
+          progress);
+      }
+      else
+        book = _crawlService.Download(
+          url,
+          pageFrom,
+          pageTo,
+          filePath,
+          null);
 
       if (book == null)
         _logger.LogError(CustomMessage.ObjectIsNull, nameof(book));
@@ -327,6 +420,12 @@ namespace MagicGirlWeb
       return book;
     }
 
+    /// <summary>
+    /// 上傳檔案至雲端儲存空間
+    /// </summary>
+    /// <param name="filePath">上傳檔案的儲存位置</param>
+    /// <param name="mimeType">檔案格式</param>
+    /// <param name="sourceId">BookWebsite的SourceId，已供識別下載來源</param>
     private void UploadCloud(string filePath, string mimeType, string sourceId)
     {
       // 檔案上傳
@@ -387,6 +486,12 @@ namespace MagicGirlWeb
       return View(viewModel);
     }
 
+    /// <summary>
+    /// 於雲端儲存空間下載小說，並進行本地下載或發送至指定信箱
+    /// </summary>
+    /// <param name="viewModel"></param>
+    /// <param name="id"></param>
+    /// <returns></returns>
     // Post: Books/BookDownloadData
     [HttpPost]
     public async Task<IActionResult> BookDownloadPost(BookDownloadView viewModel, string? id)
@@ -455,6 +560,11 @@ namespace MagicGirlWeb
 
     }
 
+    /// <summary>
+    /// 根據SourceId於雲端儲存空間下載小說，並進行本地下載
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     // GET: Books/CloudFile/id
     public async Task<IActionResult> CloudFile(string? id)
     {
@@ -523,20 +633,29 @@ namespace MagicGirlWeb
       return View(viewModel);
     }
 
+    /// <summary>
+    /// 將使用者上傳的檔案做簡繁轉換與換行修正，完成後進行本地下載或發送至指定信箱
+    /// </summary>
+    /// <param name="viewModel"></param>
+    /// <returns></returns>
     [HttpPost]
     public async Task<IActionResult> SmartEditPost(SmartEditView viewModel)
     {
       // -- 資料驗證 -- //
       if (!ModelState.IsValid)
-        // return Error();
+      {
+        _logger.LogInformation(CustomMessage.ModelIsInvalid);
+        TempData["message"] = "資料錯誤，請重新輸入。";
         return RedirectToAction(nameof(SmartEdit), viewModel);
-
+      }
 
       // -- 資料處理 -- //    
       var TxtFile = JsonSerializer.Deserialize<SmartEditView.FilepondFile>(viewModel.JsonFile);
       if (TxtFile.data.Length == 0)
-        // return Error();
+      {
+        TempData["message"] = "檔案格式錯誤，請重新上傳。";
         return RedirectToAction(nameof(SmartEdit), viewModel);
+      }
 
       // 微軟的encoding list, 因big5不在.Net Core內建支援的編碼內，需另外下載System.Text.Encoding.CodePages，並在使用前註冊
       // https://docs.microsoft.com/zh-tw/windows/win32/intl/code-page-identifiers?redirectedfrom=MSDN
@@ -580,6 +699,8 @@ namespace MagicGirlWeb
             subject,
             body,
             filePath);
+
+          TempData["message"] = "檔案已寄出。";
         }
 
         if (viewModel.IsDownload)
@@ -597,6 +718,5 @@ namespace MagicGirlWeb
       return RedirectToAction(nameof(SmartEdit), viewModel);
 
     }
-
   }
 }

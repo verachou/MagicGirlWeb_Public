@@ -22,6 +22,13 @@ namespace MagicGirlWeb.Service
       _config = config;
     }
 
+    /// <summary>
+    /// 寄送郵件
+    /// </summary>
+    /// <param name="mails"></param>
+    /// <param name="subject"></param>
+    /// <param name="body"></param>
+    /// <param name="filePath">附件檔案位置</param>
     public void SendMail(
       List<string> mails,
       string subject,

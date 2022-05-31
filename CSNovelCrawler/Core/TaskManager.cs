@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -121,7 +122,7 @@ namespace CSNovelCrawler.Core
     //   t.Start();
 
     // }
-    
+
     /// <summary>
     /// 切換訂閱任務
     /// </summary>
@@ -203,6 +204,7 @@ namespace CSNovelCrawler.Core
     {
       try
       {
+        taskInfo.TotalDownloadPage = taskInfo.EndSection + 1 - taskInfo.BeginSection + 1;
         taskInfo.Status = DownloadStatus.Downloading;
         if (taskInfo.Download())
         {
@@ -222,36 +224,28 @@ namespace CSNovelCrawler.Core
 
     }
 
-    // 目前未使用功能
-    // public void DownloadTaskAsync(TaskInfo taskInfo)
-    // {
-    //   var t = new Thread(() =>
-    //   {
-    //     try
-    //     {
-    //       taskInfo.Status = DownloadStatus.Downloading;
-    //       if (taskInfo.Download())
-    //       {
-    //         taskInfo.Status = DownloadStatus.DownloadComplete;
-    //       }
-    //       else
-    //       {
-    //         taskInfo.Status = DownloadStatus.Downloadblocked;
-    //       }
+    public async Task DownloadTaskAsync(TaskInfo taskInfo)
+    {
+      try
+      {
+        taskInfo.TotalDownloadPage = taskInfo.EndSection + 1 - taskInfo.BeginSection + 1;
+        taskInfo.Status = DownloadStatus.Downloading;
+        if (taskInfo.Download())
+        {
+          taskInfo.Status = DownloadStatus.DownloadComplete;
+        }
+        else
+        {
+          taskInfo.Status = DownloadStatus.Downloadblocked;
+        }
 
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //       _logger.LogError(ex.ToString());
-    //       taskInfo.Status = DownloadStatus.Error;
-    //     }
-
-    //   })
-    //   { IsBackground = true };
-    //   t.Start();
-    // }
-
-
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex.ToString());
+        taskInfo.Status = DownloadStatus.Error;
+      }
+    }
 
     /// <summary>
     /// 停止任務

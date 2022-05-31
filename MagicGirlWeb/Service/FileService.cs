@@ -41,6 +41,12 @@ namespace MagicGirlWeb.Service
       });
     }
 
+    /// <summary>
+    /// 根據fileId從雲端儲存空間下載檔案至指定的儲存位置
+    /// </summary>
+    /// <param name="fileId">雲端儲存空間的檔案Id</param>
+    /// <param name="filePath">下載檔案儲存位置</param>
+    /// <returns></returns>
     // https://googleapis.dev/dotnet/Google.Apis.Drive.v3/latest/api/Google.Apis.Drive.v3.FilesResource.GetRequest.html#Google_Apis_Drive_v3_FilesResource_GetRequest_MediaDownloader
     public bool Download(
         string fileId,
@@ -64,12 +70,19 @@ namespace MagicGirlWeb.Service
       return true;
     }
 
+    /// <summary>
+    /// 將指定檔案上傳至雲端儲存空間
+    /// </summary>
+    /// <param name="filePath">上傳檔案位置</param>
+    /// <param name="mimeType">檔案格式</param>
+    /// <param name="description">該檔案上傳至雲端儲存空間的備註內容</param>
+    /// <returns></returns>
     public string Upload(
       string filePath,
       string mimeType,
       string description)
     {
-      string fileName = Path.GetFileName(filePath); 
+      string fileName = Path.GetFileName(filePath);
       var fileMetadata = new Google.Apis.Drive.v3.Data.File();
       fileMetadata.Name = fileName;
       fileMetadata.Description = description;
@@ -114,7 +127,7 @@ namespace MagicGirlWeb.Service
           request = _drivceService.Files.Create(fileMetadata, stream, mimeType);
           request.Fields = "id";
           var reqResult = request.Upload();
-          if(reqResult.Exception != null)
+          if (reqResult.Exception != null)
           {
             _logger.LogWarning(reqResult.Exception.Message);
           }
@@ -125,6 +138,10 @@ namespace MagicGirlWeb.Service
     }
 
 
+    /// <summary>
+    /// 刪除目標資料夾下的所有檔案
+    /// </summary>
+    /// <param name="folderPath">資料夾路徑</param>
     public void ClearLocalFolder(string folderPath)
     {
       DirectoryInfo directory = new DirectoryInfo(folderPath);
@@ -132,7 +149,7 @@ namespace MagicGirlWeb.Service
       foreach (FileInfo file in files)
       {
         file.Delete();
-      }      
+      }
     }
 
 
@@ -147,7 +164,7 @@ namespace MagicGirlWeb.Service
       }
     }
 
-    
+
 
 
   }

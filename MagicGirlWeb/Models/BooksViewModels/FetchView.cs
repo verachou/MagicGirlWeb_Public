@@ -30,12 +30,15 @@ namespace MagicGirlWeb.Models.BooksViewModels
 
     public ICollection<string> SupportUrls { get; set; }
 
+    //下載百分比使用
+    public string HubConnId { get; set; }
+    public int ProgressPct { get; set; }
+
     public class AccountEmail
     {
       public int EmailId { get; set; }
       public string Description { get; set; }
-      public bool IsChecked { get; set; } = false;
-
+      public bool IsChecked { get; set; } = false;      
     }
   }
 }

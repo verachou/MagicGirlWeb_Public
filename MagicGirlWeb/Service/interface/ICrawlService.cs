@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Collections.Generic;
 using MagicGirlWeb.Models;
@@ -14,7 +15,8 @@ namespace MagicGirlWeb.Service
       string url,
       int lastPageFrom,
       int lastPageTo,
-      string filePath
+      string filePath,
+      IProgress<int>? progress
     );
 
     void DeleteLocalFile(string url);
