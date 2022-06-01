@@ -11,15 +11,26 @@ It's a web for 30+ years old magic girls. Enjoy it.
 
 ## Install on Azure
 
+### Setting Environment
+1. @Azure Web App
+	1. Configuration, see [azure portal - configure connection strings](https://docs.microsoft.com/zh-tw/azure/app-service/configure-common?tabs=portal#configure-connection-strings)
+		* ASPNETCORE_ENVIRONMENT = Production
+
+### Upload Database File
+1. @Azure Web App
+	1. upload initial db to azure by ftp, path: `/site/database`
+	1. Configuration, see [azure portal - configure connection strings](https://docs.microsoft.com/zh-tw/azure/app-service/configure-common?tabs=portal#configure-connection-strings)
+		* ConnectionStrings__MagicConnection = {db connection string} `e.g. DataSource=D:\home\site\database\MagicDatabase.db`
+
 ### Using Google OAuth2
 1. @Google API Console:
-	1. create client id % password, see [Google Sign-In for server-side apps](https://developers.google.com/identity/sign-in/web/server-side-flow)
+	1. create client id & password, see [Google Sign-In for server-side apps](https://developers.google.com/identity/sign-in/web/server-side-flow)
 	1. callback uri will be
 	`https://{example.com}/signin-google`
 1. @Azure Web App
 	1. Configuration, see [azure portal - configure connection strings](https://docs.microsoft.com/zh-tw/azure/app-service/configure-common?tabs=portal#configure-connection-strings)
-		1. Authentication__GOOGLE_CLIENT_ID = {google client id}
-		1. Authentication__GOOGLE_CLIENT_SECRET = {google client id's password}
+		* Authentication__GOOGLE_CLIENT_ID = {google client id}
+		* Authentication__GOOGLE_CLIENT_SECRET = {google client id's password}
 
 ### Using Google Drive
 1. @Google API Console:
@@ -31,11 +42,9 @@ It's a web for 30+ years old magic girls. Enjoy it.
 1. @Azure Web App
 	1. upload the google service account auth key to azure by ftp, path: `/site/wwwroot/keystore`
 	1. Configuration, see [azure portal - configure connection strings](https://docs.microsoft.com/zh-tw/azure/app-service/configure-common?tabs=portal#configure-connection-strings)
-		1. Authentication__GOOGLE__DriveFolderId = {the google drive folder id}
-		1. Authentication__GOOGLE__DriveApiKey = {auth key real path}
+		* Authentication__GOOGLE__DriveFolderId = {the google drive folder id}
+		* Authentication__GOOGLE__DriveApiKey = {auth key real path} `e.g. D:\home\site\wwwroot\keystore\magicgirlweb-6957f033bd9b.json`
 
-### Upload Database File
-to be continued
 
 ---
 ## Thanks for these resources
@@ -45,3 +54,4 @@ novel download+: <https://dev.azure.com/qin89/CSNovelCrawler>
 
 theme: <https://github.com/themefisher/focus-admin-dashboard-theme>
 
+【Google API 教學】如何申請 OAuth 2.0 憑證？ 使用Google Drive API 做示範給你看！: <https://learn.markteaching.com/google-drive-api-%e6%95%99%e5%ad%b8-oauth-2-0-%e6%86%91%e8%ad%89/>
