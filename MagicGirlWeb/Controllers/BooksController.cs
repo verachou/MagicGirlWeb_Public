@@ -86,33 +86,59 @@ namespace MagicGirlWeb
     }
 
     [HttpGet]
-    public async Task<IActionResult> Fetch(FetchView viewModel)
+    public async Task<IActionResult> Fetch()
     {
-      if (viewModel.AccountEmails == null)
+      _logger.LogTrace("[HttpGet] Fetch");
+      var viewModel = new FetchView();
+
+
+      var accountId = _userManager.GetUserId(User);
+      viewModel.AccountEmails = new List<FetchView.AccountEmail>();
+
+      var emails = GetEmailList();
+      if (emails != null)
       {
-        var accountId = _userManager.GetUserId(User);
-        viewModel.AccountEmails = new List<FetchView.AccountEmail>();
-
-        var emails = GetEmailList();
-        if (emails != null)
+        emails.OrderBy(e => e.AccountId);
+        foreach (var email in emails)
         {
-          emails.OrderBy(e => e.AccountId);
-          foreach (var email in emails)
-          {
-            var checkedEmail = new FetchView.AccountEmail();
-            checkedEmail.EmailId = email.Id;
-            checkedEmail.Description = email.Description;
-            if (email.AccountId == accountId)
-              checkedEmail.IsChecked = true;
+          var checkedEmail = new FetchView.AccountEmail();
+          checkedEmail.EmailId = email.Id;
+          checkedEmail.Description = email.Description;
+          if (email.AccountId == accountId)
+            checkedEmail.IsChecked = true;
 
-            viewModel.AccountEmails.Add(checkedEmail);
-          }
+          viewModel.AccountEmails.Add(checkedEmail);
         }
       }
 
-      if (viewModel.SupportUrls == null)
-        viewModel.SupportUrls = _crawlService.PluginInfos.Select(o => o.SupportUrl).ToList();
+      viewModel.SupportUrls = _crawlService.PluginInfos.Select(o => o.SupportUrl).ToList();
 
+      return View(viewModel);
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> Fetch(FetchView viewModel)
+    {
+      switch(viewModel.FormAction)
+      {
+        // Analysis
+        case "A":
+          viewModel = FetchAnalysis(viewModel);
+          break;
+
+        // Download
+        case "D":
+          var file = FetchDownload(viewModel);
+          return file;
+          break;
+        // Send
+        case "S":
+          FetchDownload(viewModel);
+          break;
+        default:
+          break;
+      }
       return View(viewModel);
     }
 
@@ -121,9 +147,9 @@ namespace MagicGirlWeb
     /// </summary>
     /// <param name="viewModel"></param>
     /// <returns></returns>
-    [HttpPost]
-    public ActionResult FetchAnalysis(FetchView viewModel)
+    private FetchView FetchAnalysis(FetchView viewModel)
     {
+      _logger.LogTrace("[HttpPost] FetchAnalysis");
       if (ModelState.IsValid)
       {
         viewModel.ProgressPct = 0;
@@ -133,34 +159,38 @@ namespace MagicGirlWeb
           viewModel.Title = "無法解析";
           viewModel.PageFrom = 1;
           viewModel.PageTo = 1;
+          _logger.LogInformation("Url: {0} analysis fail.", viewModel.Url);
         }
         else
         {
           viewModel.Title = book.Name;
           viewModel.PageFrom = 1;
           viewModel.PageTo = book.TotalPage;
+          _logger.LogInformation("Url: {0} analysis success.", viewModel.Url);
         }
       }
 
-      return RedirectToAction(nameof(Fetch), viewModel);
+      return viewModel;
     }
 
     /// <summary>
-    /// 根據Url下載小說，並進行本地下載或發送至指定信箱
+    /// 根據Url下載小說，並進行本地下載或發送至指定信箱，本地下載與寄信共用此方法。
     /// </summary>
     /// <param name="viewModel"></param>
     /// <returns></returns>
-    [HttpPost]
-    public ActionResult FetchPost(FetchView viewModel)
+    private FileResult FetchDownload(FetchView viewModel)
     {
+      _logger.LogTrace("[HttpPost] FetchDownload");
+
       if (!ModelState.IsValid)
       {
-        _logger.LogInformation(CustomMessage.ModelIsInvalid);
+        _logger.LogWarning(CustomMessage.ModelIsInvalid);
         TempData["message"] = "資料錯誤，請重新輸入。";
-        return RedirectToAction(nameof(Fetch), viewModel);
+        //return viewModel;
       }
 
       viewModel.ProgressPct = 0;
+      var isDownload = viewModel.FormAction=="D";
       var title = viewModel.Title;
       var pageFrom = viewModel.PageFrom;
       var pageTo = viewModel.PageTo;
@@ -176,6 +206,7 @@ namespace MagicGirlWeb
       // 預設無status: 判斷當前狀態
       // 若已設定status則直接以該status執行，不用另外判斷
 
+      _logger.LogInformation("User: {0} download. Url: {1}", User.Identity.Name, viewModel.Url);
       if (saveBook != null)
       {
         status = BookStatus.BookNotChanged;
@@ -209,7 +240,7 @@ namespace MagicGirlWeb
             {
               _logger.LogError(CustomMessage.ObjectIsNull, downloadBook);
               TempData["message"] = "下載失敗，請稍後再試。";
-              return RedirectToAction(nameof(Fetch), viewModel);
+              //return viewModel;
             }
 
             // 更新資料庫
@@ -250,7 +281,7 @@ namespace MagicGirlWeb
             {
               _logger.LogError(CustomMessage.ObjectIsNull, downloadBook);
               TempData["message"] = "下載失敗，請稍後再試。";
-              return RedirectToAction(nameof(Fetch), viewModel);
+              //return viewModel;
             }
 
             // 更新資料庫
@@ -295,7 +326,7 @@ namespace MagicGirlWeb
               {
                 _logger.LogError(CustomMessage.ObjectIsNull, downloadBook);
                 TempData["message"] = "下載失敗，請稍後再試。";
-                return RedirectToAction(nameof(Fetch), viewModel);
+                return null;
               }
 
               // 更新資料庫
@@ -322,10 +353,11 @@ namespace MagicGirlWeb
         default:
           _logger.LogError("BookStatus is out of definition. BookStatus: {0}", status);
           TempData["message"] = "下載失敗，請稍後再試。";
-          return RedirectToAction(nameof(Fetch), viewModel);
+          //return viewModel;
+          break;
       }
 
-      if (viewModel.IsDownload)
+      if (isDownload)
       {
         // 情境：下載檔案    
         _bookService.InsertBookDownload(
@@ -368,7 +400,7 @@ namespace MagicGirlWeb
         viewModel.PageTo,
         mails);
 
-      return RedirectToAction(nameof(Fetch), viewModel);
+      return null;
     }
 
 
@@ -449,6 +481,8 @@ namespace MagicGirlWeb
     [HttpGet]
     public async Task<IActionResult> BookDownload()
     {
+      _logger.LogTrace("[HttpGet] BookDownload");
+
       var bookDownloads = _bookService.GetBookDownloadAll();
       var viewModel = new BookDownloadView();
       viewModel.BookDownloads = (from bd in bookDownloads
@@ -496,9 +530,12 @@ namespace MagicGirlWeb
     [HttpPost]
     public async Task<IActionResult> BookDownloadPost(BookDownloadView viewModel, string? id)
     {
+      _logger.LogTrace("[HttpPost] BookDownloadPost");
+      _logger.LogInformation("User: {0} download from BookDownload. SourceId: {1}", User.Identity.Name, id);
       var sourceId = id;
       if (sourceId == null)
       {
+        _logger.LogError(CustomMessage.ObjectIsNull, "sourceId");
         TempData["message"] = "此項目已遺失，請使用線上小說轉檔功能重新下載。";
         return RedirectToAction(nameof(BookDownload));
       }
@@ -608,12 +645,13 @@ namespace MagicGirlWeb
     [HttpGet]
     public IActionResult SmartEdit(SmartEditView viewModel)
     {
+      _logger.LogTrace("[HttpGet] SmartEdit");
+
       if (viewModel.AccountEmails == null)
       {
         var accountId = _userManager.GetUserId(User);
         viewModel.AccountEmails = new List<SmartEditView.AccountEmail>();
 
-        // var emails = _accountService.GetEmailAll();
         var emails = GetEmailList();
         if (emails != null)
         {
@@ -641,10 +679,12 @@ namespace MagicGirlWeb
     [HttpPost]
     public async Task<IActionResult> SmartEditPost(SmartEditView viewModel)
     {
+      _logger.LogTrace("[HttpPost] SmartEditPost");
+      _logger.LogInformation("User: {0} upload file to SmartEdit.", User.Identity.Name);
       // -- 資料驗證 -- //
       if (!ModelState.IsValid)
       {
-        _logger.LogInformation(CustomMessage.ModelIsInvalid);
+        _logger.LogWarning(CustomMessage.ModelIsInvalid);
         TempData["message"] = "資料錯誤，請重新輸入。";
         return RedirectToAction(nameof(SmartEdit), viewModel);
       }
@@ -653,6 +693,7 @@ namespace MagicGirlWeb
       var TxtFile = JsonSerializer.Deserialize<SmartEditView.FilepondFile>(viewModel.JsonFile);
       if (TxtFile.data.Length == 0)
       {
+        _logger.LogWarning(CustomMessage.ModelIsInvalid);
         TempData["message"] = "檔案格式錯誤，請重新上傳。";
         return RedirectToAction(nameof(SmartEdit), viewModel);
       }

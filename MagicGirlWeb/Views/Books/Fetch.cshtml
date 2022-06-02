@@ -100,7 +100,7 @@
                 <div class="card-body">
                   <div class="basic-elements">
 
-                    <form asp-controller="Books" asp-action="Fetch" enctype="multipart/form-data" method="post">
+                    <form asp-controller="Books" id="formFetch" enctype="multipart/form-data" method="post">
                       <div class="row">
                         <div class="col-lg-12">
                           <div class="form-group m-b-10">
@@ -122,7 +122,7 @@
                           </div>
                         </div>
                         <div class="col-lg-6">
-                          <input type="submit" value="分析" formaction="FetchAnalysis" class="btn btn-primary btn-block">
+                          <input type="submit" value="分析" id="clickAnalysis" class="btn btn-primary btn-block">
                         </div>
                       </div>
                       <hr>
@@ -130,8 +130,7 @@
                         <div class="col-lg-12">
                           <div class="input-group">
                             <label>書名：</label>
-                            <p class="form-control-static">@Model.Title</p>
-                            <input asp-for="Title" type="text" hidden>
+                            <p class="form-control-static">@Model.Title</p>           
                           </div>
                         </div>
                         <div class="col-lg-12">
@@ -177,15 +176,21 @@
                             </div>
                           </div>
                         </div>
-                        <input asp-for="HubConnId" type="hidden">
-                        <input asp-for="IsDownload" type="checkbox" id="checkDownload" hidden>
+                        <div>
+                          <input asp-for="Title" type="hidden" value="@Model.Title">
+                          <input asp-for="HubConnId" type="hidden">
+                          <input asp-for="FormAction" type="hidden" id="FormAction">
+                          @for (var i = 0; i < Model.SupportUrls!.Count; i++)
+                          {
+                            <input type="hidden" asp-for="@Model.SupportUrls[i]">
+                          }
+                        </div>
+                        <!-- hidden data-->
                         <div class="col-lg-4 order-3 order-lg-2">
-                          <input type="submit" formaction="FetchPost" class="btn btn-default btn-block" value="下載 TXT"
-                            id="clickDownload">
+                          <input type="submit" class="btn btn-default btn-block" value="下載 TXT" id="clickDownload">
                         </div>
                         <div class="col-lg-8 order-2 order-lg-3 order-xs-last">
-                          <input type="submit" formaction="FetchPost" class="btn btn-primary btn-block" value="傳 送"
-                            id="clickSend">
+                          <input type="submit" class="btn btn-primary btn-block" value="傳 送" id="clickSend">
                         </div>
                         <!-- column -->
                       </div>
@@ -193,11 +198,11 @@
                       @* <div class="row">
                         <div id="ProgressPct">@Model.ProgressPct</div>
                         <div class="progress m-t-20">
-                          <div class="progress-bar bg-success" style="width: 75%; height:15px;" role="progressbar">
-                            @Model.ProgressPct
-                          </div>
+                        <div class="progress-bar bg-success" style="width: 75%; height:15px;" role="progressbar">
+                        @Model.ProgressPct
                         </div>
-                      </div> *@
+                        </div>
+                        </div> *@
                     </form>
                   </div>
                 </div>
@@ -208,40 +213,40 @@
                 <div class="card-body">
                   <div class="basic-elements">
 
-                    <form asp-controller="Books" asp-action="Fetch" enctype="multipart/form-data" method="post">
-                      <div class="row">
-                        <div class="col-lg-12">
-                          <div class="form-group m-b-10">
-                            <label>Google 可支援的小說<a href="" data-toggle="modal" data-target="#ModalInfo" class="m-r-10"
-                                title="支援書庫列表">
-                                <span><i class="fa fa-info-circle color-darkgrey"></i></span>
-                              </a> </label>
-                            <div class="input-box input-group-flat position-relative">
-                              <input id="txtTargetGoogle" type="text" class="form-control name-input"
-                                placeholder="請輸入書名或作者" oninput="ToggleClearTarget();">
-                              <a href="javascript:;" id="iconClearTargetGoogle" class="clear-input position-absolute">
-                                <img src="~/theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
-                              </a>
-                            </div>
+
+                    <div class="row">
+                      <div class="col-lg-12">
+                        <div class="form-group m-b-10">
+                          <label>Google 可支援的小說<a href="" data-toggle="modal" data-target="#ModalInfo" class="m-r-10"
+                              title="支援書庫列表">
+                              <span><i class="fa fa-info-circle color-darkgrey"></i></span>
+                            </a> </label>
+                          <div class="input-box input-group-flat position-relative">
+                            <input id="txtTargetGoogle" type="text" class="form-control name-input"
+                              placeholder="請輸入書名或作者" oninput="ToggleClearTarget();">
+                            <a href="javascript:;" id="iconClearTargetGoogle" class="clear-input position-absolute">
+                              <img src="~/theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
+                            </a>
                           </div>
                         </div>
-                        <div class="col-lg-6">
-                          @{
-                            var strSearch = "";
-                            foreach (var item in Model.SupportUrls)
-                            {
-                              item.Replace("https://", "").Replace("http://", "");
-                              if (strSearch == "")
-                                strSearch = " site:" + item;
-                              else
-                                strSearch += " OR site:" + item;
-                            }
-                            <button type="button" class="btn btn-primary btn-block" name="btnSearch"
-                              onclick="GoogleSearch('@(strSearch)')">搜尋</button>
-                          }
-                        </div>
                       </div>
-                    </form>
+                      <div class="col-lg-6">
+                        @{
+                          var strSearch = "";
+                          foreach (var item in Model.SupportUrls)
+                          {
+                            item.Replace("https://", "").Replace("http://", "");
+                            if (strSearch == "")
+                              strSearch = " site:" + item;
+                            else
+                              strSearch += " OR site:" + item;
+                          }
+                          <button type="button" class="btn btn-primary btn-block" name="btnSearch"
+                            onclick="GoogleSearch('@(strSearch)')">搜尋</button>
+                        }
+
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -365,16 +370,16 @@
     }
   });
 
-  //設定寄信或下載
+  //設定form post指定動作
+  $("#clickAnalysis").click(function () {
+      $('#FormAction').val('A');
+  });
+  //設定寄信或下載與form post指定動作
   $("#clickDownload").click(function () {
-    if ($("#checkDownload").prop("checked", false)) {
-      $("#checkDownload").prop("checked", true)
-    }
+      $('#FormAction').val('D');
   });
   $("#clickSend").click(function () {
-    if ($("#checkDownload").prop("checked", true)) {
-      $("#checkDownload").prop("checked", false)
-    }
+      $('#FormAction').val('S');
   });
 
   // 組成Google Search查詢字串，另開新視窗
