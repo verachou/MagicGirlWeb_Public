@@ -29,10 +29,11 @@ jobs:
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
+          retention-days: 1
 
   deploy:
     runs-on: windows-latest
@@ -43,9 +44,10 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: .net-app
+          retention-days: 1
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -55,8 +57,3 @@ jobs:
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3DAA7759933B4DCFBA27471B46154D2E }}
           package: .
-          
-      - name: Delete artifact
-        uses: geekyeggo/delete-artifact@v1
-        with:
-          name: .net-app
