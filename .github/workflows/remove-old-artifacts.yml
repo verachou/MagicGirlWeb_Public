@@ -2,12 +2,12 @@ name: Remove old artifacts
 
 on:
   schedule:
-    # Every day at 3pm taiwan time
-    - cron: '0 7 * * *'
+    # Every day at 4pm taiwan time
+    - cron: '0 8 * * *'
 
 jobs:
   remove-old-artifacts:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
@@ -20,7 +20,7 @@ jobs:
         # skip-recent: 5
 
   cleanup-artifacts:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - name: Artifact Cleanup
