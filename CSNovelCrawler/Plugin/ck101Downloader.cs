@@ -10,7 +10,7 @@ namespace CSNovelCrawler.Plugin
 {
   internal class Ck101Downloader : AbstractDownloader
   {
-    private string str_regex = @"^https?:\/\/\w*\.*ck101.com(\/thread-)*(\/forum.php\?mod=viewthread&tid=)*(?<TID>\d+).*";
+    private string str_regex = @"^https?:\/\/\w*\.*ck101.tw(\/thread-)*(\/forum.php\?mod=viewthread&tid=)*(?<TID>\d+).*";
 
     public Ck101Downloader(ILoggerFactory loggerFactory) : base(loggerFactory)
     {
@@ -48,7 +48,7 @@ namespace CSNovelCrawler.Plugin
         _logger.LogDebug(LogMessage.Plugin.Tid, TaskInfo.Tid);
       }
 
-      TaskInfo.Url = string.Format("https://ck101.com/thread-{0}-1-1.html", TaskInfo.Tid);
+      TaskInfo.Url = string.Format("https://ck101.tw/thread-{0}-1-1.html", TaskInfo.Tid);
       _logger.LogDebug(LogMessage.Plugin.Url, TaskInfo.Url);
 
       //用HtmlAgilityPack分析
@@ -69,18 +69,18 @@ namespace CSNovelCrawler.Plugin
 
       //取第一頁共幾樓
       htmlRoot = GetHtmlDocument(TaskInfo.Url);
-      HtmlNodeCollection nodeSession = htmlRoot.DocumentNode.SelectNodes("//*[@class=\"btncopy\"]");
+      HtmlNodeCollection nodeSession = htmlRoot.DocumentNode.SelectNodes("//*[@class=\"pi\"]/strong/a/em");
       TaskInfo.PageSection = int.Parse(Regex.Replace(nodeSession[nodeSession.Count - 1].InnerText.Trim(), "[^0-9]", "", RegexOptions.IgnoreCase));
 
       //取總樓數
-      HtmlNode node = htmlRoot.DocumentNode.SelectSingleNode("//*[@page=\"nextall\"]");
+      HtmlNode node = htmlRoot.DocumentNode.SelectSingleNode("//*[@class=\"last\"]");
       String strLastPage = "";
       //兩頁以上
       if (node != null)
       {
         strLastPage = node.Attributes["href"].Value.Trim();
 
-        htmlRoot = GetHtmlDocument(string.Format("https://ck101.com{0}", strLastPage));
+        htmlRoot = GetHtmlDocument(strLastPage);
       }
       else //只有一頁
       {
@@ -88,7 +88,7 @@ namespace CSNovelCrawler.Plugin
       }
 
       nodeSession = null;
-      nodeSession = htmlRoot.DocumentNode.SelectNodes("//*[@class=\"btncopy\"]");
+      nodeSession = htmlRoot.DocumentNode.SelectNodes("//*[@class=\"pi\"]/strong/a/em");
       String tempStr = Regex.Replace(nodeSession[nodeSession.Count - 1].InnerText.Trim(), "[^0-9]", "", RegexOptions.IgnoreCase);
       TaskInfo.TotalSection = int.Parse(tempStr);
 
@@ -119,7 +119,7 @@ namespace CSNovelCrawler.Plugin
       typeSetting.Add(new HtmlDecode());
       typeSetting.Add(new UniformFormat());
 
-      Regex r = new Regex(@"(?<Head>^https?:\/\/\w*\.*ck101.com\/thread-\d+-)(?<CurrentPage>\d+)(?<Tail>-\w+\.html)");
+      Regex r = new Regex(@"(?<Head>^https?:\/\/\w*\.*ck101.tw\/thread-\d+-)(?<CurrentPage>\d+)(?<Tail>-\w+\.html)");
       Match m = r.Match(TaskInfo.Url);
       string urlHead = string.Empty, urlTail = string.Empty;
       if (m.Success)
@@ -162,18 +162,18 @@ namespace CSNovelCrawler.Plugin
               switch (TaskInfo.FailTimes % 2)//常常取不到完整資料，用多個網址取
               {
                 case 0:
-                  url = string.Format("https://ck101.com/thread-{0}-1-1.html", TaskInfo.Tid);
+                  url = string.Format("https://ck101.tw/thread-{0}-1-1.html", TaskInfo.Tid);
                   break;
 
                 case 1:
-                  url = string.Format("https://m.ck101.com/forum.php?mod=redirect&ptid={0}&authorid=0&postno=1", TaskInfo.Tid);
+                  url = string.Format("https://m.ck101.tw/forum.php?mod=redirect&ptid={0}&authorid=0&postno=1", TaskInfo.Tid);
                   break;
 
                 case 2:
-                  url = string.Format("https://m.ck101.com/forum.php?mod=redirect&ptid={0}&authorid=0&postno=1", TaskInfo.Tid);
+                  url = string.Format("https://m.ck101.tw/forum.php?mod=redirect&ptid={0}&authorid=0&postno=1", TaskInfo.Tid);
                   break;
                 case 3:
-                  url = string.Format("https://m.ck101.com/forum.php?mod=viewthread&tid={0}&extra=page%3D1", TaskInfo.Tid);
+                  url = string.Format("https://m.ck101.tw/forum.php?mod=viewthread&tid={0}&extra=page%3D1", TaskInfo.Tid);
                   break;
               }
             }

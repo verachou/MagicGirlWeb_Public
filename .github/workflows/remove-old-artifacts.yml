@@ -2,8 +2,8 @@ name: Remove old artifacts
 
 on:
   schedule:
-    # Every day at 1am
-    - cron: '0 4 * * *'
+    # Every day at 4pm taiwan time
+    - cron: '0 8 * * *'
 
 jobs:
   remove-old-artifacts:
@@ -18,3 +18,13 @@ jobs:
         # Optional inputs
         # skip-tags: true
         # skip-recent: 5
+
+  cleanup-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Artifact Cleanup
+        uses: jimschubert/delete-artifacts-action@v1
+        with:
+          log_level: 'error'
+          min_bytes: '0'
