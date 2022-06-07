@@ -8,10 +8,9 @@ namespace CSNovelCrawler.Test
     {
       if (Directory.Exists(filePath))
       {
-        Directory.Delete(filePath, true); // true: 移除 path 中的目錄、子目錄和檔案
-        Directory.CreateDirectory(filePath);
+        Directory.Delete(filePath, true); // true: 移除 path 中的目錄、子目錄和檔案        
       }
-
+      Directory.CreateDirectory(filePath);
     }
 
   }
