@@ -6,12 +6,12 @@ using CSNovelCrawler.Interface;
 
 namespace CSNovelCrawler.Plugin
 {
-  [PluginInformation("卡comDownloader", "ck101.com插件", "JeanLin", "1.2.1.0", "卡提諾論壇下載插件", "https://ck101.com/")]
+  [PluginInformation("卡twDownloader", "ck101.tw插件", "JeanLin", "1.3.0.0", "卡提諾論壇下載插件", "https://ck101.tw/")]
   public class Ck101Plugin : AbstractPlugin
   {
     public Ck101Plugin(ILoggerFactory loggerFactory) : base(loggerFactory)
     {
-      pattern = @"^https?:\/\/\w*\.*ck101.com(\/thread-)*(\/forum.php\?mod=viewthread&tid=)*(?<TID>\d+).*";
+      pattern =  @"^https?:\/\/\w*\.*ck101.tw(\/thread-)*(\/forum.php\?mod=viewthread&tid=)*(?<TID>\d+).*";
       PluginName = System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.Name.Replace("Plugin", "".ToLower());
     }
 

@@ -27,7 +27,7 @@ namespace CSNovelCrawler.Plugin
     public HtmlDocument GetHtmlDocument(string url)
     {
       CurrentParameter.Url = url;
-      return Network.GetHtmlDocument(Network.GetHtmlSource(CurrentParameter, Encoding.GetEncoding("gb2312")));
+      return Network.GetHtmlDocument(Network.GetHtmlSource(CurrentParameter, Encoding.GetEncoding("GBK")));
     }
 
     /// <summary>
@@ -108,17 +108,20 @@ namespace CSNovelCrawler.Plugin
     public void GetTotalSection()
     {
       HtmlDocument htmlRoot = GetHtmlDocument(TaskInfo.Url);
-      Regex r = new Regex(@"<a href=\S\/\d+_\d+\/(?<SectionName>\d+)\.html\S>");
-      MatchCollection matchs = r.Matches(htmlRoot.DocumentNode.SelectSingleNode("//*[@class='listmain']").InnerHtml);
+      Regex r = new Regex(@"<a href?.=\S\/\d+_\d+\/(?<SectionName>\d+)\.html\S>");
+      MatchCollection matchs = r.Matches(htmlRoot.DocumentNode.SelectSingleNode("//*[@class=\"listmain\"]/dl").InnerHtml);
       foreach (Match m in matchs)
       {
         int temp = CommonTools.TryParse(m.Groups["SectionName"].Value, 0);
         if (!_sectionNames.Contains(temp))
         {
           _sectionNames.Add(temp);
-        }
+        } else
+		{
+			_sectionNames.Remove(temp);
+			_sectionNames.Add(temp);
+		}
       }
-      _sectionNames.Sort();
     }
 
     public override bool Download()
@@ -149,7 +152,7 @@ namespace CSNovelCrawler.Plugin
           HtmlNode tempNode = htmlRoot.DocumentNode.SelectSingleNode("//*[@id=\"content\"]");
           Network.RemoveSubHtmlNode(tempNode, "script");
 
-          string tempTextFile = htmlRoot.DocumentNode.SelectSingleNode("//*[@class=\"bookname\"]/h1").InnerText
+          string tempTextFile = htmlRoot.DocumentNode.SelectSingleNode("//*[@class=\"content\"]/h1").InnerText
               + "\r\n" + tempNode.InnerHtml + "\r\n";
 
 

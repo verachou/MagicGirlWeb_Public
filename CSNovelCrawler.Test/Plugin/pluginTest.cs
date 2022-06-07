@@ -48,8 +48,9 @@ namespace CSNovelCrawler.Test.Plugin
     }
 
     [Test]
-    [TestCase("https://czbooks.net/n/cf2efm",           "《（ABO）陽澄湖帝王》",        "作者: superpanda")]
-    [TestCase("https://www.sto.cx/book-179093-1.html",  "《合籠蠱》",                   "作者: 首初")]
+    [TestCase("https://czbooks.net/n/cf2efm",           "（ABO）陽澄湖帝王",        "superpanda")]
+    [TestCase("https://www.sto.cx/book-179093-1.html",  "合籠蠱",                   "首初")]
+    [TestCase("https://ck101.tw/thread-4918983-1-1.html",  "[現代修真] 諸神遊戲",       "緣分0")]
     public void AnalysisTask_InputUrl_GetInformation(
         string inputUrl,
         string expectTitle,
@@ -97,9 +98,10 @@ namespace CSNovelCrawler.Test.Plugin
     }
 
     [Test]
-    [TestCase("https://czbooks.net/n/cf2efm",           @"./books/《（ABO）陽澄湖帝王》.txt")]
-    [TestCase("https://www.sto.cx/book-179093-1.html",  @"./books/《合籠蠱》.txt")]
-    public void DownloadTask_InputUrl_FileIsExist(
+    [TestCase("https://czbooks.net/n/cf2efm",             @"./books/《（ABO）陽澄湖帝王》.txt")]
+    [TestCase("https://www.sto.cx/book-179093-1.html",    @"./books/《合籠蠱》.txt")]
+    [TestCase("https://ck101.tw/thread-4918983-1-1.html", @"./books/[現代修真] 諸神遊戲.txt")]
+        public void DownloadTask_InputUrl_FileIsExist(
         string inputUrl,
         string expectFilePath
     )
