@@ -49,7 +49,7 @@ namespace MagicGirlWeb.Service
       message.From.Add(new MailboxAddress(fromName, fromAddress));
       foreach (var mail in mails)
       {
-        var displayName = mail.Substring(1, mail.IndexOf("@"));
+        var displayName = mail.Substring(0, mail.IndexOf("@"));
         message.To.Add(new MailboxAddress(displayName, mail));
       }
       message.Subject = subject;
