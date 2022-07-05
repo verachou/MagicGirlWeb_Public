@@ -18,13 +18,14 @@ namespace CSNovelCrawler.Class
 
     public static IntPtr opencc_open([MarshalAs(UnmanagedType.LPStr)] string configFileName)
     {
-    //   string path = System.Web.HttpRuntime.AppDomainAppPath + "opencc\\";
-      string path = Directory.GetCurrentDirectory() + @"\packages\opencc\";
+      string path = Environment.GetEnvironmentVariable("OpenCC_Dir");
+      
       if (!Directory.Exists(path))
-      {
-        Console.WriteLine("{0} is not exist.", path);
-      }
-      // Console.WriteLine(Directory.GetCurrentDirectory());
+        path = Directory.GetCurrentDirectory() + @"\opencc\";
+      
+      if (!Directory.Exists(path))
+        throw new System.ComponentModel.Win32Exception(path);
+      
       return IntPtr.Size == 8 /* 64bit */ ? opencc_open_64(path + "x64\\" + configFileName) : opencc_open_32(path + "x86\\" + configFileName);
     }
 
