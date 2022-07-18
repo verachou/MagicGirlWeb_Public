@@ -152,25 +152,26 @@ namespace MagicGirlWeb
     private FetchView FetchAnalysis(FetchView viewModel)
     {
       _logger.LogTrace("[HttpPost] FetchAnalysis");
-      if (ModelState.IsValid)
-      {
-        viewModel.ProgressPct = 0;
+      viewModel.ProgressPct = 0;
+      viewModel.Title = "無法解析";
+      viewModel.PageFrom = 1;
+      viewModel.PageTo = 1;
+
+      if (!ModelState.IsValid)
+        _logger.LogWarning(CustomMessage.ModelIsInvalid);
+      else         
+      {        
         Book book = _crawlService.Analysis(viewModel.Url);
-        if (book == null)
-        {
-          viewModel.Title = "無法解析";
-          viewModel.PageFrom = 1;
-          viewModel.PageTo = 1;
-          _logger.LogInformation("Url: {0} analysis fail.", viewModel.Url);
-        }
-        else
+        if (book != null)          
         {
           viewModel.Title = book.Name;
           viewModel.PageFrom = 1;
           viewModel.PageTo = book.TotalPage;
           _logger.LogInformation("Url: {0} analysis success.", viewModel.Url);
         }
-      }
+        else
+          _logger.LogInformation("Url: {0} analysis fail.", viewModel.Url);
+      }      
 
       return viewModel;
     }
@@ -180,15 +181,15 @@ namespace MagicGirlWeb
     /// </summary>
     /// <param name="viewModel"></param>
     /// <returns></returns>
-    private FileResult FetchDownload(FetchView viewModel)
+    private ActionResult FetchDownload(FetchView viewModel)
     {
       _logger.LogTrace("[HttpPost] FetchDownload");
 
       if (!ModelState.IsValid)
       {
         _logger.LogWarning(CustomMessage.ModelIsInvalid);
-        TempData["message"] = "資料錯誤，請重新輸入。";
-        //return viewModel;
+        // TempData["message"] = "資料錯誤，請重新輸入。";
+        return RedirectToAction(nameof(Fetch), viewModel);
       }
 
       viewModel.ProgressPct = 0;
