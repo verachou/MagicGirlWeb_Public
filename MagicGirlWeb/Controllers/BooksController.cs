@@ -86,10 +86,11 @@ namespace MagicGirlWeb
     }
 
     [HttpGet]
-    public async Task<IActionResult> Fetch()
+    public async Task<IActionResult> Fetch(FetchView viewModel)
     {
       _logger.LogTrace("[HttpGet] Fetch");
-      var viewModel = new FetchView();
+      if (viewModel == null)
+        viewModel = new FetchView();
 
 
       var accountId = _userManager.GetUserId(User);
@@ -118,7 +119,7 @@ namespace MagicGirlWeb
 
 
     [HttpPost]
-    public async Task<IActionResult> Fetch(FetchView viewModel)
+    public async Task<IActionResult> FetchPost(FetchView viewModel)
     {
       switch(viewModel.FormAction)
       {
@@ -139,7 +140,8 @@ namespace MagicGirlWeb
         default:
           break;
       }
-      return View(viewModel);
+      // return View(viewModel);
+      return RedirectToAction(nameof(Fetch), viewModel);
     }
 
     /// <summary>

@@ -100,7 +100,7 @@
                 <div class="card-body">
                   <div class="basic-elements">
 
-                    <form asp-controller="Books" id="formFetch" enctype="multipart/form-data" method="post">
+                    <form asp-controller="Books" id="formFetch" enctype="multipart/form-data" method="post" asp-action="FetchPost">
                       <div class="row">
                         <div class="col-lg-12">
                           <div class="form-group m-b-10">
@@ -118,7 +118,7 @@
                               <a href="javascript:;" id="iconClearTargetUrl" class="clear-input position-absolute">
                                 <img src="~/theme_focus/images/cancel.svg" class="clear-input-img" alt="" />
                               </a>
-                            </div>
+                            </div>                            
                           </div>
                         </div>
                         <div class="col-lg-6">
