@@ -766,6 +766,7 @@ namespace MagicGirlWeb
 
     }
 
+    [Authorize(Policy = "RequireAdminOrAdvanceUser")]
     // [HttpGet] 
     public async Task<IActionResult> Depository(DepositoryView viewModel)
     {
@@ -840,6 +841,7 @@ namespace MagicGirlWeb
     /// <param name="id">fileId</param>
     /// <returns></returns>
     // Post: Books/DepositoryPost/xxxx?name=xx
+    [Authorize(Policy = "RequireAdminOrAdvanceUser")]
     [HttpPost]
     public async Task<IActionResult> DepositoryPost(DepositoryView viewModel, string? id, string? name)
     {
@@ -896,6 +898,7 @@ namespace MagicGirlWeb
     /// <param name="id">FileId</param>
     /// <returns></returns>
     // GET: Books/CloudDepository/xxxxxxx?name=xx
+    [Authorize(Policy = "RequireAdminOrAdvanceUser")]
     public async Task<IActionResult> CloudDepository(string? id, string? name)
     {
       _logger.LogInformation("[HttpPost] CloudDepository");

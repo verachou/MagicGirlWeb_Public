@@ -78,6 +78,7 @@ namespace MagicGirlWeb
         options.AddPolicy("RequireAdvanceUserRole", policy => policy.RequireRole("ADVANCE_USER"));
         options.AddPolicy("RequireAdvanceGuestRole", policy => policy.RequireRole("ADVANCE_GUEST"));
         options.AddPolicy("RequireGuestRole", policy => policy.RequireRole("GUEST"));
+        options.AddPolicy("RequireAdminOrAdvanceUser", policy => policy.RequireRole("ADMIN","ADVANCE_USER"));
       });
 
       services.AddSignalR();
