@@ -1,4 +1,4 @@
-@model MagicGirlWeb.Models.BooksViewModels.BookDownloadView
+@model MagicGirlWeb.Models.BooksViewModels.DepositoryView
 
 @{
   ViewData["Title"] = "[低調] 線上小說轉檔";
@@ -10,7 +10,7 @@
         <div class="col-lg-8">
           <div class="page-header">
             <div class="page-title">
-              <h1 class="p-b-30">下載紀錄</h1>
+              <h1 class="p-b-30">精選存放區</h1>
             </div>
           </div>
         </div>
@@ -20,16 +20,21 @@
           <div class="col-lg-8">
             <div class="card">
               <div class="card-body">
-                <!-- Modal information -->
-                <div class="modal fade" id="ModalBDl" tabindex="-1" role="dialog" aria-labelledby="ModalBDlTitle"
-                  aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="ModalBDlTitle">選擇收件地址</h5>
-                      </div>
-                      <form asp-controller="Books" asp-action="BookDownloadPost" id="formSetting" enctype="multipart/form-data"
-                        method="post">
+                <form asp-controller="Books" asp-actoun="DepositoryPost" id="formSetting" enctype="multipart/form-data"
+                  method="post">
+                  <div class="form-group">
+                    <select id="ddlDepository" asp-for="SelectedDepoId" asp-items="Model.Depositorys"
+                      class="form-control"></select>
+                  </div>
+                  <!-- Modal information -->
+                  <div class="modal fade" id="ModalBDl" tabindex="-1" role="dialog" aria-labelledby="ModalBDlTitle"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="ModalBDlTitle">選擇收件地址</h5>
+                        </div>
+
                         <div class="modal-body">
                           <div class="form-group emailSelectBox">
                             <div class="row">
@@ -54,12 +59,11 @@
                           <button type="button" class="btn btn-light" data-dismiss="modal">取消</button>
                           <button type="submit" class="btn btn-primary" id="btnSend">傳送</button>
                         </div>
-                      </form>
-
+                      </div>
                     </div>
                   </div>
-                </div>
-                <!-- /# Modal information -->
+                  <!-- /# Modal information -->                  
+                </form>
                 <!-- BootStrap-table -->
                 <table id="dlTable"></table>
                 <!-- -->
@@ -89,87 +93,22 @@
   //Bootstrap Table....................
   var $table = $('#dlTable')
   // 資料本體
-  // 序號 書名 連結 總頁數 最後下載時間
-  @* var sourceData = [
-      {
-      id: '1',
-      bookname: '《一起來玩超H的RPG吧！》',
-      link: 'https://www.google.com',
-      page: '71',
-      date: '2019/09/06 16:58:06'
-      }, {
-      id: '2',
-      bookname: '《全球高考》',
-      link: 'https://www.google.com',
-      page: '171',
-      date: '2020/12/09 14:36:00'
-      },
-      {
-      id: '3',
-      bookname: '《盜版文章害死人》',
-      link: 'https://www.google.com',
-      page: '18',
-      date: '2019/05/08 17:41:32'
-      },
-      {
-      id: '4',
-      bookname: '《農門辣妻：田園種包子》',
-      link: 'https://www.google.com',
-      page: '1376',
-      date: '2019/05/09 04:42:22'
-      },
-      {
-      id: '5',
-      bookname: '《(ABO)我是不是你最疼愛的alpha你為什麼不說話》',
-      link: 'https://www.google.com',
-      page: '15',
-      date: '2019/05/12 03:37:33'
-      },
-      {
-      id: '6',
-      bookname: '《金絲雀馴主手冊[娛樂圈]》',
-      link: 'https://www.google.com',
-      page: '105',
-      date: '2019/05/12 06:00:56'
-      },
-      {
-      id: '7',
-      bookname: '《你和人頭都歸我[電競]》',
-      link: 'https://www.google.com',
-      page: '145',
-      date: '2019/05/12 08:20:48'
-      }, {
-      id: '8',
-      bookname: '《時意》',
-      link: 'https://www.google.com',
-      page: '84',
-      date: '2019/05/13 15:17:04'
-      },
-      {
-      id: '9',
-      bookname: '宮斗不如做只貓',
-      link: 'https://www.google.com',
-      page: '96',
-      date: '2019/05/14 05:10:40'
-      },
-      {
-      id: '10',
-      bookname: '《我有一個秘密》',
-      link: 'https://www.google.com',
-      page: '161',
-      date: '2019/05/16 02:39:44'
-      },
-      {
-      id: '11',
-      bookname: '[現代修真] 諸神遊戲',
-      link: 'https://www.google.com',
-      page: '35',
-      date: '2019/05/17 13:28:24'
-      },
-      ]; *@
+  // 序號 檔名 檔案大小 總頁數 最後下載時間
+
 
   // 取得資料
-  var sourceData = @Html.Raw(Json.Serialize(@Model.BookDownloads));
+  var sourceData = @Html.Raw(Json.Serialize(@Model.Files));
+
+  function getReadableFileSizeString(fileSizeInBytes) {
+    var i = -1;
+    var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+    do {
+      fileSizeInBytes = fileSizeInBytes / 1024;
+      i++;
+    } while (fileSizeInBytes > 1024);
+
+    return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+  };
 
   function downloadFileAlert($id) {
     alert('下載id=' + $id + '的TXT');
@@ -203,8 +142,8 @@
       }
     })
     columns.push({
-      field: 'bookname',
-      title: '書名',
+      field: 'filename',
+      title: '檔名',
       sortable: true,
       align: 'left',
       width: '60',
@@ -219,8 +158,8 @@
       }
     })
     columns.push({
-      field: 'page',
-      title: '總頁數',
+      field: 'filesize',
+      title: '檔案大小',
       sortable: true,
       align: 'left',
       width: '5',
@@ -235,10 +174,10 @@
       }
     })
     columns.push({
-      field: 'date',
-      title: '最後下載時間',
+      field: 'description',
+      title: '備註',
       sortable: true,
-      align: 'right',
+      align: 'left',
       width: '10',
       widthUnit: '%',
       formatter: function (val) {
@@ -270,23 +209,19 @@
     // 組合資料列
     var regexp = /(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})/; //日期格式: YYYY-MM-DD hh:mm:ss
     for (i = 0; i < rows; i++) {
-      var matchedResult = regexp.exec(sourceData[i].downloadDate);
-      sourceData[i].downloadDate = matchedResult[1].concat(' ', matchedResult[2]);
-      sourceData[i].link = "/Books/CloudFile/" + sourceData[i].sourceId;
-
+      sourceData[i].link = "/Books/CloudDepository/" + sourceData[i].id + "?name=" + sourceData[i].name;
       row = {}
-      row['id'] = sourceData[i].id
-      row['bookname'] = '<a class="color-primary border_b_dotted" href="' + sourceData[i].link + '">' + sourceData[i].title + '</a>'
+      row['id'] = i + 1
+      row['filename'] = '<a class="color-primary border_b_dotted" href="' + sourceData[i].link + '">' + sourceData[i].name + '</a>'
       if (@Model.AccountEmails!.Count > 0) {
-        row['action'] = '<a href="#" data-toggle="modal" data-target="#ModalBDl" class="color-primary" id="buttonEdit" onclick="bindSourceId(\'' + sourceData[i].sourceId + '\')">寄信</a>'
+        row['action'] = '<a href="#" data-toggle="modal" data-target="#ModalBDl" class="color-primary" id="buttonEdit" onclick="bindFileId(\'' + sourceData[i].id + '\',\'' + sourceData[i].name + '\')">寄信</a>'
         row['action'] += '<a class="color-primary p-l-16" href="' + sourceData[i].link + '">下載</a>'
       }
-      else{
+      else {
         row['action'] = '<a class="color-primary p-l-16" href="' + sourceData[i].link + '">下載</a>'
       }
-      
-      row['page'] = sourceData[i].totalPage
-      row['date'] = sourceData[i].downloadDate
+      row['filesize'] = getReadableFileSizeString(sourceData[i].size)
+      row['description'] = sourceData[i].description
       data.push(row)
     }
 
@@ -339,10 +274,17 @@
 </script>
 
 <script type="text/javascript">
+  //下拉選單變更時重新查詢資料
+  $("#ddlDepository").change(function () {
+    console.log("ddlDepository change event")
+    $('#formSetting').attr('action', '/Books/Depository/');
+    $('#formSetting').submit();
+  });
+
+
   //點編輯按鈕時將同排資料放入Modal欄位中
-  function bindSourceId($sourceId) {
-    $('#formSetting').attr('action', '/Books/BookDownloadPost/'+ $sourceId); 
-    
+  function bindFileId($fileId, $fileName) {
+    $('#formSetting').attr('action', '/Books/DepositoryPost/' + $fileId + '?name=' + $fileName);
   }
 </script>
 

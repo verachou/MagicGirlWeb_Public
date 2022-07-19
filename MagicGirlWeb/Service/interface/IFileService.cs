@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace MagicGirlWeb.Service
 {
@@ -13,10 +14,21 @@ namespace MagicGirlWeb.Service
     string Upload(
       string filePath,
       string mimeType,
-      string description
+      string description,
+      List<string> cloudFolderIds
     );
 
     void ClearLocalFolder(string folderPath);
+
+    List<CloudFile> GetFileList(string cloudFolderId);
+
+    public class CloudFile
+    {
+      public string Id;
+      public string Name;
+      public int Size;
+      public string Description;
+    }
 
   }
 }
