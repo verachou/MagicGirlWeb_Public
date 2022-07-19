@@ -15,16 +15,12 @@ namespace MagicGirlWeb.Service
   public class FileService : IFileService
   {
     private readonly ILogger _logger;
-    // private readonly IConfiguration _config;
-    private readonly List<string> _folderIds;
     private DriveService _drivceService;
 
     public FileService(ILoggerFactory loggerFactory, IConfiguration config)
     {
       string className = System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.Name;
       this._logger = loggerFactory.CreateLogger(className);
-      this._folderIds = new List<string>();
-      this._folderIds.Add(config.GetValue<string>("Authentication:Google:DriveFolderId"));
 
       // If modifying these scopes, delete your previously saved credentials
       string[] scopes = { DriveService.Scope.DriveFile,
@@ -52,6 +48,9 @@ namespace MagicGirlWeb.Service
         string fileId,
         string filePath)
     {
+      _logger.LogInformation("Download");
+      _logger.LogInformation("fileId: {0}",fileId);
+      _logger.LogInformation("filePath: {0}",filePath);
       // Get the media get request object.
       try
       {
@@ -76,12 +75,21 @@ namespace MagicGirlWeb.Service
     /// <param name="filePath">上傳檔案位置</param>
     /// <param name="mimeType">檔案格式</param>
     /// <param name="description">該檔案上傳至雲端儲存空間的備註內容</param>
+    /// <param name="cloudFolderIds">上傳目的地資料夾Id list</param>
     /// <returns></returns>
     public string Upload(
       string filePath,
       string mimeType,
-      string description)
+      string description,
+      List<string> cloudFolderIds)
     {
+      _logger.LogInformation("Upload");
+      _logger.LogInformation("filePath: {0}",filePath);
+      _logger.LogInformation("mimeType: {0}",mimeType);
+      _logger.LogInformation("description: {0}",description);
+      _logger.LogInformation("cloudFolderIds: {0}",cloudFolderIds.ToString());
+
+
       string fileName = Path.GetFileName(filePath);
       var fileMetadata = new Google.Apis.Drive.v3.Data.File();
       fileMetadata.Name = fileName;
@@ -91,10 +99,10 @@ namespace MagicGirlWeb.Service
       query += String.Format("and name contains '{0}' ", fileName);
       query += String.Format("and fullText contains '{0}' ", description);
 
-      string queryParent = String.Format("'{0}' in parents ", _folderIds[0]);
-      for (int i = 1; i < _folderIds.Count; i++)
+      string queryParent = String.Format("'{0}' in parents ", cloudFolderIds[0]);
+      for (int i = 1; i < cloudFolderIds.Count; i++)
       {
-        queryParent += String.Format("or '{0}' in parents ", _folderIds[i]);
+        queryParent += String.Format("or '{0}' in parents ", cloudFolderIds[i]);
       }
       query += String.Format("and ({0})", queryParent);
 
@@ -103,7 +111,11 @@ namespace MagicGirlWeb.Service
       req = _drivceService.Files.List();
       req.Q = query;
       req.Fields = "files(id, name, description)";
+      _logger.LogTrace("ListQuest.Q: {0}", req.Q);
+      _logger.LogTrace("ListQuest.Fields: {0}", req.Fields);
+
       var result = req.Execute();
+      _logger.LogInformation("ListQuest.Execute().Files.Count: {0}", result.Files.Count);
 
       if (result.Files.Count == 1)
       {
@@ -121,7 +133,7 @@ namespace MagicGirlWeb.Service
       else
       {
         FilesResource.CreateMediaUpload request;
-        fileMetadata.Parents = _folderIds;
+        fileMetadata.Parents = cloudFolderIds;
         using (var stream = new FileStream(filePath, FileMode.Open))
         {
           request = _drivceService.Files.Create(fileMetadata, stream, mimeType);
@@ -135,6 +147,45 @@ namespace MagicGirlWeb.Service
           return file.Id;
         };
       }
+    }
+
+    
+    /// <summary>
+    /// 根據指定的雲端資料夾Id，回傳該資料夾下所有檔案資料(包含檔名、檔案大小、備註)
+    /// </summary>
+    /// <param name="cloudFolderId">雲端資料夾Id</param>
+    public List<IFileService.CloudFile> GetFileList(string cloudFolderId)
+    {
+      _logger.LogInformation("GetFileList");
+      _logger.LogInformation("cloudFolderId: {0}",cloudFolderId);
+
+      // Define parameters of request.
+      FilesResource.ListRequest listRequest = _drivceService.Files.List();
+      // listRequest.PageSize = 10;
+      listRequest.Fields = "nextPageToken, files(id, name, description, size)";
+      listRequest.Q = String.Format("parents='{0}'",cloudFolderId);      
+      _logger.LogTrace("ListQuest.Q: {0}", listRequest.Q);
+      _logger.LogTrace("ListQuest.Fields: {0}", listRequest.Fields);
+
+      // List files.
+      IList<Google.Apis.Drive.v3.Data.File> files = listRequest.Execute().Files;
+      _logger.LogInformation("ListQuest.Execute().Files.Count: {0}", files.Count);
+
+      List<IFileService.CloudFile> cloudFiles = new List<IFileService.CloudFile>();
+      if (files == null || files.Count == 0)
+      {
+        return null;
+      }
+      foreach (var file in files)
+      {
+        IFileService.CloudFile cf = new IFileService.CloudFile();
+        cf.Id = file.Id;
+        cf.Name = file.Name;
+        cf.Size = (int) file.Size;
+        cf.Description = file.Description;
+        cloudFiles.Add(cf);
+      }                    
+      return cloudFiles;
     }
 
 

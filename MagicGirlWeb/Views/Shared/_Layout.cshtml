@@ -20,17 +20,16 @@
   <!-- Customize -->
   <link href="~/theme_focus/css/customize.css" rel="stylesheet">
   <link rel="icon" href="~/theme_focus/images/favicon_32x32.ico">
-</head>
-
-<body class="pace-done">
   @if (TempData["message"] != null)
   {
     <script type="text/javascript">
-      window.onload = function () {
-        alert("TempData["message"");
-      }      
+      var message = "@Html.Raw(TempData["message"])";
+      alert(message);
     </script>
   }
+</head>
+
+<body class="pace-done">
   <div class="sidebar sidebar-hide-to-small sidebar-shrink sidebar-gestures">
     <div class="nano">
       <div class="nano-content">
@@ -48,8 +47,7 @@
             <li><a asp-area="" asp-controller="Books" asp-action="SmartEdit"><i class="ti-wand"></i>魔法格式調整</a></li>
             <li><a asp-area="" asp-controller="Books" asp-action="BookDownload"><i class="ti-calendar"></i>下載紀錄</a></li>
             <li class="label">鑽石會員專區</li>
-            <li><a href="https://drive.google.com/drive/folders/1fD3suIhPcZqMbzE5pqC0A5fPCUmGcuLU" target="_blank">
-              <i class="ti-cloud-down"></i>精選存放區</a></li>
+            <li><a asp-area="" asp-controller="Books" asp-action="Depository"><i class="ti-cloud-down"></i>精選存放區</a></li>
           }
           @if ((await AuthorizationService.AuthorizeAsync(User, "RequireAdministratorRole")).Succeeded)
           {
@@ -97,6 +95,7 @@
   <!--**********************************
           Scripts
       ***********************************-->
+
   <!-- jquery vendor -->
   <script src="~/theme_focus/js/lib/jquery.min.js"></script>
   <script src="~/theme_focus/js/lib/jquery.nanoscroller.min.js"></script>
@@ -111,6 +110,7 @@
   <script src="~/js/site.js" asp-append-version="true"></script>
   <!-- script init-->
   @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 
 </html>

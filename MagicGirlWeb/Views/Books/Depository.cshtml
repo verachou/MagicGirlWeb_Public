@@ -1,0 +1,305 @@
+@model MagicGirlWeb.Models.BooksViewModels.DepositoryView
+
+@{
+  ViewData["Title"] = "[低調] 線上小說轉檔";
+}
+<div class="content-wrap">
+  <div class="main">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="page-header">
+            <div class="page-title">
+              <h1 class="p-b-30">精選存放區</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+      <section id="main-content">
+        <div class="row">
+          <div class="col-lg-8">
+            <div class="card">
+              <div class="card-body">
+                <form asp-controller="Books" asp-actoun="DepositoryPost" id="formSetting" enctype="multipart/form-data"
+                  method="post">
+                  <div class="form-group">
+                    <select id="ddlDepository" asp-for="SelectedDepoId" asp-items="Model.Depositorys"
+                      class="form-control"></select>
+                  </div>
+                  <!-- Modal information -->
+                  <div class="modal fade" id="ModalBDl" tabindex="-1" role="dialog" aria-labelledby="ModalBDlTitle"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title" id="ModalBDlTitle">選擇收件地址</h5>
+                        </div>
+
+                        <div class="modal-body">
+                          <div class="form-group emailSelectBox">
+                            <div class="row">
+                              <div class="col-lg-12 m-b-18">
+                                <input type="checkbox" class="largerCheckbox checkMiddle" name="clickAll" id="clickAll">
+                                <label for="clickAll" class="color-darkgrey">全選</label>
+                              </div>
+                              @for (var i = 0; i < Model.AccountEmails!.Count; i++)
+                              {
+                                <div class="col-sm-6">
+                                  <input asp-for="@Model.AccountEmails[i].IsChecked" class="largerCheckbox checkMiddle"
+                                  type="checkbox" id="checkEmail@(i)">
+                                  <label for="checkEmail@(i)">@Model.AccountEmails[i].Description</label>
+                                  <input type="hidden" asp-for="@Model.AccountEmails[i].EmailId">
+                                  <input type="hidden" asp-for="@Model.AccountEmails[i].Description">
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-light" data-dismiss="modal">取消</button>
+                          <button type="submit" class="btn btn-primary" id="btnSend">傳送</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- /# Modal information -->                  
+                </form>
+                <!-- BootStrap-table -->
+                <table id="dlTable"></table>
+                <!-- -->
+              </div>
+            </div>
+          </div>
+        </div> <!-- col-lg-8 -->
+    </div>
+    </section>
+  </div>
+</div>
+</div>
+<!-- contain-wrap -->
+
+@section Css {
+<!-- bootstrap table -->
+<link href="~/theme_focus/css/lib/bootstrap-table/bootstrap-table.min.css" rel="stylesheet" />
+<link href="~/theme_focus/css/lib/bootstrap-table/bootstrap-table-fixed-columns.min.css" rel="stylesheet">
+}
+
+@section Scripts {
+<!-- bootstrap table-->
+<script src="~/theme_focus/js/lib/bootstrap-table/bootstrap-table.min.js"></script>
+<script src="~/theme_focus/js/lib/bootstrap-table/bootstrap-table-fixed-columns.min.js"></script>
+
+<script>
+  //Bootstrap Table....................
+  var $table = $('#dlTable')
+  // 資料本體
+  // 序號 檔名 檔案大小 總頁數 最後下載時間
+
+
+  // 取得資料
+  var sourceData = @Html.Raw(Json.Serialize(@Model.Files));
+
+  function getReadableFileSizeString(fileSizeInBytes) {
+    var i = -1;
+    var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+    do {
+      fileSizeInBytes = fileSizeInBytes / 1024;
+      i++;
+    } while (fileSizeInBytes > 1024);
+
+    return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+  };
+
+  function downloadFileAlert($id) {
+    alert('下載id=' + $id + '的TXT');
+  }
+
+  function buildTable($el) {
+    var cells = 6
+    var rows = sourceData.length
+    var i
+    var j
+    var row
+    var columns = []
+    var data = []
+
+    // 設定欄位資訊
+    columns.push({
+      field: 'id',
+      title: '序號',
+      sortable: true,
+      align: 'left',
+      visible: true,
+      width: '5',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+    columns.push({
+      field: 'filename',
+      title: '檔名',
+      sortable: true,
+      align: 'left',
+      width: '60',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+    columns.push({
+      field: 'filesize',
+      title: '檔案大小',
+      sortable: true,
+      align: 'left',
+      width: '5',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+    columns.push({
+      field: 'description',
+      title: '備註',
+      sortable: true,
+      align: 'left',
+      width: '10',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+    columns.push({
+      field: 'action',
+      title: '操作',
+      sortable: true,
+      align: 'middle',
+      width: '20',
+      widthUnit: '%',
+      formatter: function (val) {
+        return '<div class="item">' + val + '</div>'
+      },
+      events: {
+        'click .item': function () {
+          console.log('click')
+        }
+      }
+    })
+
+    // 組合資料列
+    var regexp = /(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})/; //日期格式: YYYY-MM-DD hh:mm:ss
+    for (i = 0; i < rows; i++) {
+      sourceData[i].link = "/Books/CloudDepository/" + sourceData[i].id + "?name=" + sourceData[i].name;
+      row = {}
+      row['id'] = i + 1
+      row['filename'] = '<a class="color-primary border_b_dotted" href="' + sourceData[i].link + '">' + sourceData[i].name + '</a>'
+      if (@Model.AccountEmails!.Count > 0) {
+        row['action'] = '<a href="#" data-toggle="modal" data-target="#ModalBDl" class="color-primary" id="buttonEdit" onclick="bindFileId(\'' + sourceData[i].id + '\',\'' + sourceData[i].name + '\')">寄信</a>'
+        row['action'] += '<a class="color-primary p-l-16" href="' + sourceData[i].link + '">下載</a>'
+      }
+      else {
+        row['action'] = '<a class="color-primary p-l-16" href="' + sourceData[i].link + '">下載</a>'
+      }
+      row['filesize'] = getReadableFileSizeString(sourceData[i].size)
+      row['description'] = sourceData[i].description
+      data.push(row)
+    }
+
+    // 產生Table
+    $el.bootstrapTable('destroy').bootstrapTable({
+      height: $('#height').prop('checked') ? 400 : undefined,
+      columns: columns,
+      data: data,
+      classes: 'table table-striped table-hover',//Table樣式
+
+      //可於ToolBar上顯示的按鈕
+      toolbar: '.toolbar',
+      showColumns: true, //顯示/隱藏哪些欄位
+      showToggle: true, //名片式/table式切換
+      showPaginationSwitch: false, //分頁/不分頁切換
+      showRefresh: false, //重新整理
+      search: true, //查詢
+      showSearchButton: false, //是否顯示查詢放大鏡按鈕
+
+
+      //凍結欄位設定
+      fixedColumns: true,
+      fixedNumber: 0,//凍結左邊n個欄位
+      fixedRightNumber: 1,//凍結右邊n個欄位
+
+      //分頁設定
+      pagination: true, //是否要分頁
+      onPageChange: function (currentPage, pageSize) {
+        console.log("目前頁數:" + currentPage + ",一頁顯示:" + pageSize + "筆");
+      },
+      pageSize: 10, //一頁顯示幾筆
+      pageList: [10, 20, 50, 100], //一頁顯示幾筆的選項
+
+      formatRecordsPerPage: function (pageSize) {
+        return '&nbsp;&nbsp;每頁顯示' + pageSize + '筆';
+      },
+      formatShowingRows: function (fromIndex, toIndex, totalSize) {
+        //目前第幾頁
+        var currentPage = Math.ceil(fromIndex / this.pageSize);
+        //總共幾頁
+        var totalPageCount = Math.ceil(totalSize / this.pageSize);
+        return '第' + currentPage + '頁&nbsp;&nbsp;共' + totalPageCount + '頁';
+      }
+    })
+  }
+
+  $(function () {
+    buildTable($table)
+  })
+</script>
+
+<script type="text/javascript">
+  //下拉選單變更時重新查詢資料
+  $("#ddlDepository").change(function () {
+    console.log("ddlDepository change event")
+    $('#formSetting').attr('action', '/Books/Depository/');
+    $('#formSetting').submit();
+  });
+
+
+  //點編輯按鈕時將同排資料放入Modal欄位中
+  function bindFileId($fileId, $fileName) {
+    $('#formSetting').attr('action', '/Books/DepositoryPost/' + $fileId + '?name=' + $fileName);
+  }
+</script>
+
+<script type="text/javascript">
+  //全選清單
+  $("#clickAll").click(function () {
+    if ($("#clickAll").prop("checked")) {
+      $("input[name='checkEmail']").each(function () {
+        $(this).prop("checked", true);
+      });
+    } else {
+      $("input[name='checkEmail']").each(function () {
+        $(this).prop("checked", false);
+      });
+    }
+  });
+</script>
+}

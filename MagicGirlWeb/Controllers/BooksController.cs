@@ -464,10 +464,13 @@ namespace MagicGirlWeb
     private void UploadCloud(string filePath, string mimeType, string sourceId)
     {
       // 檔案上傳
+      List<string> cloudFolderIds = new List<string>();
+      cloudFolderIds.Add(_config.GetValue<string>("Authentication:Google:DriveFolderId"));      
       string fileId = _fileService.Upload(
         filePath,
         mimeType,
-        sourceId);
+        sourceId,
+        cloudFolderIds);
 
       if (!String.IsNullOrEmpty(fileId))
         _bookService.UpdateFileId(sourceId, fileId, _folderId);
@@ -527,7 +530,7 @@ namespace MagicGirlWeb
     /// 於雲端儲存空間下載小說，並進行本地下載或發送至指定信箱
     /// </summary>
     /// <param name="viewModel"></param>
-    /// <param name="id"></param>
+    /// <param name="id">SourceId</param>
     /// <returns></returns>
     // Post: Books/BookDownloadData
     [HttpPost]
@@ -603,7 +606,7 @@ namespace MagicGirlWeb
     /// <summary>
     /// 根據SourceId於雲端儲存空間下載小說，並進行本地下載
     /// </summary>
-    /// <param name="id"></param>
+    /// <param name="id">SourceId</param>
     /// <returns></returns>
     // GET: Books/CloudFile/id
     public async Task<IActionResult> CloudFile(string? id)
@@ -761,6 +764,165 @@ namespace MagicGirlWeb
 
       return RedirectToAction(nameof(SmartEdit), viewModel);
 
+    }
+
+    // [HttpGet] 
+    public async Task<IActionResult> Depository(DepositoryView viewModel)
+    {
+      _logger.LogInformation("[HttpGet] Depository");
+
+      if (viewModel.Depositorys == null)
+      {
+        // 從config取得可使用的Google資料夾設定
+        viewModel.Depositorys = new List<SelectListItem>();
+        var depoSettings = _config.GetSection("Authentication:Google:Depository").GetChildren();
+        foreach(var setting in depoSettings)
+        {
+          var depo = new SelectListItem(setting["Name"], setting.Key);
+          viewModel.Depositorys.Add(depo);
+        }        
+      }
+
+      if (viewModel.SelectedDepoId == null)
+        viewModel.SelectedDepoId = viewModel.Depositorys.FirstOrDefault().Value;
+
+      _logger.LogInformation("User: {0} query for {1}. DepositoryId: {2}", User.Identity.Name, viewModel.SelectedDepoId, viewModel.SelectedDepoId);
+            
+      if(viewModel.Files == null)
+      {
+        var setting = _config.GetSection(String.Format("Authentication:Google:Depository:{0}", viewModel.SelectedDepoId));
+        string cloudFolderId = setting["DriveFolderId"];
+          
+        List<IFileService.CloudFile> cloudFiles = _fileService.GetFileList(cloudFolderId);
+        if(cloudFiles==null)
+        {
+          _logger.LogError(CustomMessage.ObjectIsNull, "cloudFiles");
+          TempData["message"] = "查無資料，請確認資料夾權限與路徑設定是否正確。";
+          return View(viewModel);
+        }
+
+        viewModel.Files = new List<DepositoryView.File>();
+        foreach (var cf in cloudFiles)
+        {
+          var DepoFile = new DepositoryView.File();
+          DepoFile.Id = cf.Id;
+          DepoFile.Name = cf.Name;
+          DepoFile.Size = cf.Size;     
+          DepoFile.Description = cf.Description;
+          viewModel.Files.Add(DepoFile);
+        }
+      }
+
+      var accountId = _userManager.GetUserId(User);
+      viewModel.AccountEmails = new List<DepositoryView.AccountEmail>();
+      var emails = GetEmailList();
+      if (emails != null)
+      {
+        emails.OrderBy(e => e.AccountId);
+        foreach (var email in emails)
+        {
+          var checkedEmail = new DepositoryView.AccountEmail();
+          checkedEmail.EmailId = email.Id;
+          checkedEmail.Description = email.Description;
+          if (email.AccountId == accountId)
+            checkedEmail.IsChecked = true;
+
+          viewModel.AccountEmails.Add(checkedEmail);
+        }
+      }            
+      return View(viewModel);
+    }
+
+    /// <summary>
+    /// 於雲端儲存空間下載小說，並進行本地下載或發送至指定信箱
+    /// </summary>
+    /// <param name="viewModel"></param>
+    /// <param name="id">fileId</param>
+    /// <returns></returns>
+    // Post: Books/DepositoryPost/xxxx?name=xx
+    [HttpPost]
+    public async Task<IActionResult> DepositoryPost(DepositoryView viewModel, string? id, string? name)
+    {
+      _logger.LogInformation("[HttpPost] DepositoryPost");
+      _logger.LogInformation("User: {0} download from BookDownload. FileId: {1} FileName: {2}", User.Identity.Name, id, name);
+
+      if (id == null || name == null)
+      {
+        TempData["message"] = "發生錯誤，請重新整理後再嘗試。";
+        return RedirectToAction(nameof(Depository));
+      }
+
+      string fileName = name;
+      string filePath = Path.Combine(_fileDir, fileName);
+      string fileId = id;
+      bool isSuccess = _fileService.Download(
+              fileId,
+              filePath);
+
+      if (!isSuccess)
+      {
+        _logger.LogError(CustomMessage.ObjectIsNull, fileId);
+        TempData["message"] = "發生錯誤，請重新整理後再嘗試。";
+        return RedirectToAction(nameof(Depository));
+      }
+
+      var accountId = _userManager.GetUserId(User);
+      byte[] bytes = System.IO.File.ReadAllBytes(filePath);
+      // 寄信, 寫入log，return回view
+      string subject = String.Format(_config["MailSetting:BookDownload:Subject"], Path.GetFileNameWithoutExtension(filePath));
+      string body = _config["MailSetting:Depository:Body"];
+      List<string> mails = new List<string>();
+      if (viewModel.AccountEmails != null)
+        foreach (var accountMail in viewModel.AccountEmails)
+          if (accountMail.IsChecked == true)
+          {
+            var mail = _accountService.GetEmailById(accountMail.EmailId);
+            mails.Add(mail.Email);
+          }
+
+      _notificationService.SendMail(
+        mails,
+        subject,
+        body,
+        filePath);
+
+      return RedirectToAction(nameof(Depository), viewModel);
+
+    }
+
+    /// <summary>
+    /// 根據Google的FileId於雲端儲存空間下載小說，並進行本地下載
+    /// </summary>
+    /// <param name="id">FileId</param>
+    /// <returns></returns>
+    // GET: Books/CloudDepository/xxxxxxx?name=xx
+    public async Task<IActionResult> CloudDepository(string? id, string? name)
+    {
+      _logger.LogInformation("[HttpPost] CloudDepository");
+      _logger.LogInformation("User: {0} download from BookDownload. FileId: {1} FileName: {2}", User.Identity.Name, id, name);
+      
+      if (id == null || name == null)
+      {
+        TempData["message"] = "發生錯誤，請重新整理後再嘗試。";
+        return RedirectToAction(nameof(Depository));
+      }
+
+      string fileName = name;
+      string filePath = Path.Combine(_fileDir, fileName);
+      string fileId = id;
+      bool isSuccess = _fileService.Download(
+              fileId,
+              filePath);
+
+      if (!isSuccess)
+      {
+        _logger.LogError(CustomMessage.ObjectIsNull, fileId);
+        TempData["message"] = "發生錯誤，請重新整理後再嘗試。";
+        return RedirectToAction(nameof(Depository));
+      }
+
+      byte[] bytes = System.IO.File.ReadAllBytes(filePath);
+      return File(bytes, "application/octet-stream", fileName);
     }
   }
 }
