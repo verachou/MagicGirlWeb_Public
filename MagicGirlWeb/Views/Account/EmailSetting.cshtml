@@ -85,7 +85,7 @@
                         <td class="text-break">@item.Email</td>
                         <td>
                           <a href="#" data-toggle="modal" data-target="#ModalEdit-mail" class="color-primary mail-edit"
-                        id="buttonEdit">編輯</a>
+                        name="buttonEdit">編輯</a>
                           <a asp-controller="Account" asp-action="EmailSettingDelete" asp-route-emailId="@item.EmailId"
                         class="color-primary">刪除</a>
                         </td>
@@ -95,7 +95,7 @@
                 </tbody>
               </table>
               <button type="button" class="btn btn-light btn-block m-b-30 create-email mx-auto" data-toggle="modal"
-                data-target="#ModalEdit-mail">
+                data-target="#ModalEdit-mail" id="buttonCreate">
                 <span><i class="ti-plus m-r-10"></i>新增收件信箱</span>
               </button>
             </div>
@@ -126,13 +126,20 @@
 
 <script type="text/javascript">
   //點編輯按鈕時將同排資料放入Modal欄位中
-  $('#buttonEdit').on('click', function () {
+  $("a[name='buttonEdit']").on('click', function () {
     $tr = $(this).closest('tr');
     var data = $tr.children("td").map(
       function () { return $(this).text(); }).get();
     $('#EditDescription').val(data[0]);
     $('#EditEmail').val(data[1]);
   });
+
+  //點新增按鈕時清空Modal欄位
+  $('#buttonCreate').on('click',function(){
+    $('#EditDescription').val('');
+    $('#EditEmail').val('');
+  });
+
 </script>
 }
 
