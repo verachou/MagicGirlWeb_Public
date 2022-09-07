@@ -74,5 +74,5 @@ jobs:
         with:
           app-name: 'MagicGirlWeb'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3DAA7759933B4DCFBA27471B46154D2E }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
           package: .
